@@ -114,6 +114,26 @@ hr-line
 let assets = [LICENSE ...(glob $executable_pattern)]
 $assets | each {|it| if ($it | path exists) { cp -rv $it $dist } } | flatten
 
+if ($env | get -i CLOUDSMITH_API_KEY | is-not-empty) {
+    let repo = "codetease/cli-dummy"
+    
+    glob $"($dist)/*.{deb,rpm,apk}" | each {|pkg|
+        let ext = ($pkg | path parse | get extension)
+
+        let target_path = match $ext {
+            "deb" => $"($repo)/ubuntu/jammy"
+            "rpm" => $"($repo)/el/9"
+            "apk" => $"($repo)/alpine/any-version"
+            _     => $"($repo)/any/version"
+        }
+
+        let type = if $ext == "apk" { "alpine" } else { $ext }
+        
+        print $"Pushing ($ext) to ($target_path)..."
+        cloudsmith push $type $target_path $pkg
+    }
+}
+
 # --- Create Archive ---
 cd $dist
 print $"(char nl)Creating release archive..."
@@ -153,6 +173,17 @@ if $os in ['macos-latest'] or $USE_UBUNTU {
             mv $wix_msi $final_msi
             echo $"msi=($final_msi | str replace --all '\' '/')(char nl)" o>> $env.GITHUB_OUTPUT
         }
+    }
+}
+
+if ($env | get -i CLOUDSMITH_API_KEY | is-not-empty) {
+    let repo = "codetease/tools"
+    let distro = if ($target | str contains "musl") { "alpine/any-version" } else { "ubuntu/jammy" }
+
+    glob $"($dist)/*.{deb,rpm,apk}" | each {|pkg|
+        let ext = ($pkg | path parse | get extension)
+        let type = if $ext == "apk" { "alpine" } else { $ext }
+        cloudsmith push $type $"($repo)/($distro)" $pkg
     }
 }
 

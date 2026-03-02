@@ -96,6 +96,18 @@ jobs:
       with:
         version: 0.109.1
 
+    - name: Install nFPM
+      run: |
+        echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+        sudo apt update
+        sudo apt install nfpm
+      # Not every target use this, but for simple we just install it on all ubuntu
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+
+    - name: Install Cloudsmith CLI
+      run: "pip install -U cloudsmith-cli"
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+
     - name: Install aria2
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: "sudo apt install aria2 -y"
@@ -107,6 +119,7 @@ jobs:
         OS: ${{ matrix.os }}
         REF: ${{ github.ref }}
         TARGET: ${{ matrix.target }}
+        CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
 
     # WARN: Don't upgrade this action due to the release per asset issue.
     # See: https://github.com/softprops/action-gh-release/issues/445
