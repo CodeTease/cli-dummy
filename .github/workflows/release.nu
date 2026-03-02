@@ -114,10 +114,10 @@ hr-line
 let assets = [LICENSE ...(glob $executable_pattern)]
 $assets | each {|it| if ($it | path exists) { cp -rv $it $dist } } | flatten
 
-if ($env | get -i CLOUDSMITH_API_KEY | is-not-empty) {
-    let repo = "codetease/cli-dummy"
+if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
+    let repo = "codetease/tools"
     
-    glob $"($dist)/*.{deb,rpm,apk}" | each {|pkg|
+    glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
         let ext = ($pkg | path parse | get extension)
 
         let target_path = match $ext {
