@@ -14,5 +14,5 @@ vendor: "CodeTease"
 homepage: "https://github.com/CodeTease/cli-dummy"
 license: "MIT"
 contents:
-  - src: ./target/release/cli-dummy
+  - src: ./target/releasecli-dummy
     dst: /usr/bin/cli-dummy
