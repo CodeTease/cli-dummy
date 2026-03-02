@@ -1,10 +1,9 @@
 # yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
 
 name: "cli-dummy"
-# Will be overwritten by GitHub Actions
-# arch: "${TARGET_ARCH}"
+arch: "${ARCH}"
 platform: "linux"
-version: "0.1.1"
+version: "${VERSION}"
 section: "default"
 priority: "extra"
 maintainer: "CodeTease <https://github.com/CodeTease/cli-dummy>"
@@ -14,5 +13,5 @@ vendor: "CodeTease"
 homepage: "https://github.com/CodeTease/cli-dummy"
 license: "MIT"
 contents:
-  - src: ./target/releasecli-dummy
+  - src: ./cli-dummy
     dst: /usr/bin/cli-dummy
