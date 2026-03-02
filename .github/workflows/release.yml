@@ -102,7 +102,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install nfpm -y
       # Only for Alpine and Debian
-      if: ${{ matrix.target in ['x86_64-unknown-linux-*', 'aarch64-unknown-linux-*'] }}
+      if: ${{ matrix.target == 'x86_64-unknown-linux-*' or matrix.target == 'aarch64-unknown-linux-*' }}
 
     - name: Install aria2
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
