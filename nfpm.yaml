@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
 
 name: "cli-dummy"
-arch: "amd64"
+# Will be overwritten by GitHub Actions
+# arch: "${TARGET_ARCH}"
 platform: "linux"
 version: "0.1.1"
 section: "default"
