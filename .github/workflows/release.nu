@@ -175,7 +175,7 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
     }
 
     if (which nfpm | is-not-empty) {
-        print $"(char nl)Building Linux packages (deb, rpm, apk) using nFPM..."
+        print $"(char nl)Building Linux packages using nFPM..."
         hr-line
         
         $env.ARCH = $nfpm_arch
