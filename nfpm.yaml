@@ -15,3 +15,5 @@ license: "MIT"
 contents:
   - src: ./cli-dummy
     dst: /usr/bin/cli-dummy
+  - src: ./LICENSE
+    dst: /usr/share/doc/cli-dummy/copyright

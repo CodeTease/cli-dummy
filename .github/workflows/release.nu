@@ -114,26 +114,6 @@ hr-line
 let assets = [LICENSE ...(glob $executable_pattern)]
 $assets | each {|it| if ($it | path exists) { cp -rv $it $dist } } | flatten
 
-if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
-    let repo = "codetease/tools"
-    
-    glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
-        let ext = ($pkg | path parse | get extension)
-
-        let target_path = match $ext {
-            "deb" => $"($repo)/ubuntu/jammy"
-            "rpm" => $"($repo)/el/9"
-            "apk" => $"($repo)/alpine/any-version"
-            _     => $"($repo)/any/version"
-        }
-
-        let type = if $ext == "apk" { "alpine" } else { $ext }
-        
-        print $"Pushing ($ext) to ($target_path)..."
-        cloudsmith push $type $target_path $pkg
-    }
-}
-
 # --- Create Archive ---
 cd $dist
 print $"(char nl)Creating release archive..."
@@ -176,14 +156,63 @@ if $os in ['macos-latest'] or $USE_UBUNTU {
     }
 }
 
-if ($env | get -i CLOUDSMITH_API_KEY | is-not-empty) {
-    let repo = "codetease/tools"
-    let distro = if ($target | str contains "musl") { "alpine/any-version" } else { "ubuntu/jammy" }
+# --- nFPM Linux Packaging (deb, rpm, apk) ---
+let nfpm_arch = match $target {
+    'x86_64-unknown-linux-gnu' | 'x86_64-unknown-linux-musl' => 'amd64'
+    'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
+    'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'armhf'
+    'riscv64gc-unknown-linux-gnu' => 'riscv64'
+    'loongarch64-unknown-linux-gnu' | 'loongarch64-unknown-linux-musl' => 'loong64'
+    _ => ''
+}
 
-    glob $"($dist)/*.{deb,rpm,apk}" | each {|pkg|
+if $nfpm_arch != '' and ($target | str contains 'linux') {
+    if $USE_UBUNTU and (which nfpm | is-empty) {
+        print "Installing nFPM..."
+        aria2c https://github.com/goreleaser/nfpm/releases/download/v2.41.2/nfpm_2.41.2_amd64.deb -o nfpm.deb
+        sudo dpkg -i nfpm.deb
+        rm nfpm.deb
+    }
+
+    if (which nfpm | is-not-empty) {
+        print $"(char nl)Building Linux packages (deb, rpm, apk) using nFPM..."
+        hr-line
+        
+        $env.ARCH = $nfpm_arch
+        $env.VERSION = $version
+        
+        # Ensure binary is at project root for nfpm.yaml as specified in 'contents'
+        let binary_path = $"($src)/target/($target)/release/($bin)"
+        if ($binary_path | path exists) {
+            cp -v $binary_path $"($src)/($bin)"
+            
+            cd $src
+            ["deb", "rpm", "apk"] | each {|packager|
+                let pkg_file = $"($dist)/($bin)-($version)-($target).($packager)"
+                print $"Packaging ($packager) to ($pkg_file)..."
+                nfpm pkg --packager $packager --target $pkg_file
+            }
+        }
+    }
+}
+
+if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
+    let repo = "codetease/tools"
+    
+    glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
         let ext = ($pkg | path parse | get extension)
+
+        let target_path = match $ext {
+            "deb" => $"($repo)/ubuntu/jammy"
+            "rpm" => $"($repo)/el/9"
+            "apk" => $"($repo)/alpine/any-version"
+            _     => $"($repo)/any/version"
+        }
+
         let type = if $ext == "apk" { "alpine" } else { $ext }
-        cloudsmith push $type $"($repo)/($distro)" $pkg
+        
+        print $"Pushing ($ext) to ($target_path)..."
+        cloudsmith push $type $target_path $pkg
     }
 }
 

@@ -131,6 +131,9 @@ jobs:
         files: |
           ${{ steps.nu.outputs.msi }}
           ${{ steps.nu.outputs.archive }}
+          output/*.deb
+          output/*.rpm
+          output/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
