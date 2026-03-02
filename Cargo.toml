@@ -1,6 +1,19 @@
 [package]
 name = "cli-dummy"
-version = "0.1.0"
+version = "0.1.1"
+authors = ["CodeTease"]
+repository = "https://github.com/CodeTease/cli-dummy"
+# For Homebrew
+homepage = "https://github.com/CodeTease/cli-dummy"
+license = "MIT"
+description = "A dummy CLI tool"
 edition = "2024"
 
 [dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
