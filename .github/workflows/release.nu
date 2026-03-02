@@ -66,7 +66,7 @@ if $os in ['macos-latest'] or $USE_UBUNTU {
             aria2c https://github.com/loongson/build-tools/releases/download/2024.11.01/x86_64-cross-tools-loongarch64-binutils_2.43.1-gcc_14.2.0.tar.xz
             tar xf x86_64-cross-tools-loongarch64-*.tar.xz
             $env.PATH = ($env.PATH | split row (char esep) | prepend $"($env.PWD)/cross-tools/bin")
-            $env.CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_MUSL_LINKER = 'loongarch64-unknown-linux-musl-gcc'
+            $env.CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_MUSL_LINKER = 'loongarch64-unknown-linux-gcc'
             $env.RUSTFLAGS = "-C target-feature=+crt-static"
             cargo-build-project
         }
