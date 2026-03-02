@@ -62,6 +62,30 @@ if $os in ['macos-latest'] or $USE_UBUNTU {
             cargo-build-project
         }
 
+        'loongarch64-unknown-linux-musl' => {
+            aria2c https://github.com/loongson/build-tools/releases/download/2024.11.01/x86_64-cross-tools-loongarch64-binutils_2.43.1-gcc_14.2.0.tar.xz
+            tar xf x86_64-cross-tools-loongarch64-*.tar.xz
+            $env.PATH = ($env.PATH | split row (char esep) | prepend $"($env.PWD)/cross-tools/bin")
+            $env.CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_MUSL_LINKER = 'loongarch64-unknown-linux-musl-gcc'
+            $env.RUSTFLAGS = "-C target-feature=+crt-static"
+            cargo-build-project
+        }
+
+        'armv7-unknown-linux-gnueabihf' => {
+            sudo apt-get install gcc-arm-linux-gnueabihf -y
+            $env.CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER = 'arm-linux-gnueabihf-gcc'
+            cargo-build-project
+        }
+
+        'armv7-unknown-linux-musleabihf' => {
+            let toolchain = "armv7l-linux-musleabihf-cross"
+            aria2c $"https://musl.cc/($toolchain).tgz"
+            tar -xf $"($toolchain).tgz" -C $env.HOME
+            $env.PATH = ($env.PATH | split row (char esep) | prepend $"($env.HOME)/($toolchain)/bin")
+            $env.CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER = 'armv7l-linux-musleabihf-gcc'
+            cargo-build-project
+        }
+
         _ => {
             if $USE_UBUNTU { sudo apt install musl-tools -y }
             cargo-build-project
