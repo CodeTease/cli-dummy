@@ -165,6 +165,9 @@ jobs:
     - name: Create Checksums
       run: cd release && shasum -a 256 * > ../SHA256SUMS
     - name: Publish Checksums
-      run: 'gh release upload ${{ github.ref_name }} SHA256SUMS --clobber'
+      uses: softprops/action-gh-release@v2.0.5
+      with:
+        draft: true
+        files: SHA256SUMS
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
