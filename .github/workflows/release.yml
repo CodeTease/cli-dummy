@@ -96,16 +96,23 @@ jobs:
       with:
         version: 0.109.1
 
+    - name: Setup UV
+      uses: astral-sh/setup-uv@v7
+      with:
+        save-cache: false
+        restore-cache: false
+        cache-python: false
+
     - name: Install nFPM
       run: |
         echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
         sudo apt update
-        sudo apt install nfpm urllib3 chardet
+        sudo apt install nfpm -y
       # Not every target use this, but for simple we just install it on all ubuntu
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install Cloudsmith CLI
-      run: "pip install -U cloudsmith-cli"
+      run: "uv pip install -U cloudsmith-cli chardet urllib3 requests"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
