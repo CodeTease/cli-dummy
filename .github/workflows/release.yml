@@ -112,7 +112,8 @@ jobs:
 
     - name: Install Cloudsmith CLI
       run: |
-        sudo uv pip install -U cloudsmith-cli chardet urllib3 requests --system
+        sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
+        uv pip install -U cloudsmith-cli chardet urllib3 requests --system
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
