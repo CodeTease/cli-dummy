@@ -120,7 +120,7 @@ jobs:
       run: |
         # Needed for --system to install packages globally
         sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
-        uv pip install --upgrade --system cloudsmith-cli requests
+        uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
       if: ${{ matrix.publish == true }}
 
     - name: Release Nu Binary
