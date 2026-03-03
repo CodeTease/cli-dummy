@@ -112,9 +112,7 @@ jobs:
 
     - name: Install Cloudsmith CLI
       run: |
-        uv venv
-        source .venv/bin/activate
-        uv pip install -U cloudsmith-cli chardet urllib3 requests -n
+        sudo uv pip install -U cloudsmith-cli chardet urllib3 requests --system
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
