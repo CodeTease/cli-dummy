@@ -99,9 +99,8 @@ jobs:
     - name: Setup UV
       uses: astral-sh/setup-uv@v7
       with:
-        save-cache: false
-        restore-cache: false
-        cache-python: false
+        enable-cache: false
+        python-version: "3.12"
 
     - name: Install nFPM
       run: |
@@ -112,7 +111,10 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install Cloudsmith CLI
-      run: "uv pip install -U cloudsmith-cli chardet urllib3 requests --system"
+      run: |
+        uv venv
+        source .venv/bin/activate
+        uv pip install -U cloudsmith-cli chardet urllib3 requests -n
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
