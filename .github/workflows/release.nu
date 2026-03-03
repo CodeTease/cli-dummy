@@ -201,7 +201,7 @@ if $can_publish {
     let pkgs = (glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/'))
 
     if ($pkgs | is-not-empty) {
-        $pkgs | each {|pkg| 
+        for pkg in $pkgs {
             let ext = ($pkg | path parse | get extension)
 
             let target_path = match $ext {
@@ -215,7 +215,7 @@ if $can_publish {
             
             print $"Pushing ($ext) to ($target_path)..."
             cloudsmith push $pkg_type $target_path ($pkg | path expand) -k $env.CLOUDSMITH_API_KEY
-        } 
+        }
     }
 }
 
