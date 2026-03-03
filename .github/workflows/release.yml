@@ -112,7 +112,7 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install Cloudsmith CLI
-      run: "uv pip install -U cloudsmith-cli chardet urllib3 requests"
+      run: "uv pip install -U cloudsmith-cli chardet urllib3 requests --system"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
