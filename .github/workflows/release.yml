@@ -113,6 +113,7 @@ jobs:
     - name: Install Cloudsmith CLI
       run: |
         sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
+        uv python install
         uv pip install -U cloudsmith-cli chardet urllib3 requests --system
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
