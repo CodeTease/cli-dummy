@@ -195,23 +195,27 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
 }
 
 let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? == "true")
+
 if $can_publish {
     let repo = "codetease/tools"
+    let pkgs = (glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/'))
 
-    (glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/')) | each {|pkg| 
-        let ext = ($pkg | path parse | get extension)
+    if ($pkgs | is-not-empty) {
+        $pkgs | each {|pkg| 
+            let ext = ($pkg | path parse | get extension)
 
-        let target_path = match $ext {
-            "deb" => $"($repo)/ubuntu/jammy"
-            "rpm" => $"($repo)/el/9"
-            "apk" => $"($repo)/alpine/any-version"
-            _     => $"($repo)/any/version"
-        }
+            let target_path = match $ext {
+                "deb" => $"($repo)/ubuntu/jammy"
+                "rpm" => $"($repo)/el/9"
+                "apk" => $"($repo)/alpine/any-version"
+                _     => $"($repo)/any/version"
+            }
 
-        let type = if $ext == "apk" { "alpine" } else { $ext }
-        
-        print $"Pushing ($ext) to ($target_path)..."
-        cloudsmith push $type $target_path $pkg -k $env.CLOUDSMITH_API_KEY
+            let pkg_type = if $ext == "apk" { "alpine" } else { $ext }
+            
+            print $"Pushing ($ext) to ($target_path)..."
+            cloudsmith push $pkg_type $target_path ($pkg | path expand) -k $env.CLOUDSMITH_API_KEY
+        } 
     }
 }
 
