@@ -212,6 +212,7 @@ if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
         let type = if $ext == "apk" { "alpine" } else { $ext }
         
         print $"Pushing ($ext) to ($target_path)..."
+        source .venv/bin/activate
         cloudsmith push $type $target_path $pkg
     }
 }
