@@ -194,7 +194,8 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
     }
 }
 
-if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty and ($env | get -o PUBLISH | default 'false') == 'true') {
+let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? == "true")
+if $can_publish {
     let repo = "codetease/tools"
 
     glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
