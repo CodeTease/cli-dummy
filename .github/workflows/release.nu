@@ -160,9 +160,7 @@ if $os in ['macos-latest'] or $USE_UBUNTU {
 let nfpm_arch = match $target {
     'x86_64-unknown-linux-gnu' | 'x86_64-unknown-linux-musl' => 'amd64'
     'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
-    'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'armhf'
-    'riscv64gc-unknown-linux-gnu' => 'riscv64'
-    'loongarch64-unknown-linux-gnu' | 'loongarch64-unknown-linux-musl' => 'loong64'
+    'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'arm7'
     _ => ''
 }
 
@@ -196,7 +194,7 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
     }
 }
 
-if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
+if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty and ($env | get -o PUBLISH | default 'false') == 'true') {
     let repo = "codetease/tools"
 
     glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 

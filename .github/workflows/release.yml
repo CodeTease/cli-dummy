@@ -47,6 +47,7 @@ jobs:
           os: windows-11-arm
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-22.04
+          publish: true
         - target: x86_64-unknown-linux-musl
           os: ubuntu-22.04
         - target: aarch64-unknown-linux-gnu
@@ -100,17 +101,18 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         enable-cache: false
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      if: ${{ matrix.publish == true }}
 
     - name: Install nFPM
       run: |
         echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
         sudo apt update
         sudo apt install nfpm -y
-      # Not every target use this, but for simple we just install it on all ubuntu
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      # ONLY for "strongest" Linux target since nFPM is cross-platform
+      if: ${{ matrix.publish == true }}
 
     - name: Install aria2
+      # Needed for Ubuntu to download cross-toolchains
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: "sudo apt install aria2 -y"
 
@@ -119,7 +121,7 @@ jobs:
         # Needed for --system to install packages globally
         sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
         uv pip install --upgrade --system cloudsmith-cli requests
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      if: ${{ matrix.publish == true }}
 
     - name: Release Nu Binary
       id: nu
@@ -129,6 +131,7 @@ jobs:
         REF: ${{ github.ref }}
         TARGET: ${{ matrix.target }}
         CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+        PUBLISH: ${{ matrix.publish || 'false' }}
 
     # WARN: Don't upgrade this action due to the release per asset issue.
     # See: https://github.com/softprops/action-gh-release/issues/445
