@@ -101,6 +101,7 @@ jobs:
       with:
         enable-cache: false
         python-version: "3.12"
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install nFPM
       run: |
@@ -108,13 +109,6 @@ jobs:
         sudo apt update
         sudo apt install nfpm -y
       # Not every target use this, but for simple we just install it on all ubuntu
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
-
-    - name: Install Cloudsmith CLI
-      run: |
-        uv venv
-        source .venv/bin/activate
-        uv pip install -U cloudsmith-cli chardet urllib3 requests
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
