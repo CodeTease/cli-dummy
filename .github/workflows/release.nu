@@ -199,9 +199,9 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
 if ($env | get -o CLOUDSMITH_API_KEY | is-not-empty) {
     let repo = "codetease/tools"
     uv venv
-    source ./.venv/bin/activate.nu
+    overlay use .venv/bin/activate.nu
     uv pip install -U cloudsmith-cli chardet urllib3 requests
-    
+
     glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
         let ext = ($pkg | path parse | get extension)
 
