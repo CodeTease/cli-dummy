@@ -198,7 +198,7 @@ let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? =
 if $can_publish {
     let repo = "codetease/tools"
 
-    glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/') | each {|pkg| 
+    (glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/')) | each {|pkg| 
         let ext = ($pkg | path parse | get extension)
 
         let target_path = match $ext {
