@@ -211,7 +211,7 @@ if $can_publish {
         let type = if $ext == "apk" { "alpine" } else { $ext }
         
         print $"Pushing ($ext) to ($target_path)..."
-        cloudsmith push $type $target_path $pkg
+        cloudsmith push $type $target_path $pkg -k $env.CLOUDSMITH_API_KEY
     }
 }
 
