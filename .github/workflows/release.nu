@@ -194,7 +194,8 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
     }
 }
 
-let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? == "true")
+let is_tag = ($env.REF? | default "" | str starts-with "refs/tags/")
+let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? == "true") and $is_tag
 
 if $can_publish {
     let repo = "codetease/tools"
