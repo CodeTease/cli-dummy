@@ -182,7 +182,9 @@ def run_build [] {
         echo $"archive=($archive)(char nl)" o>> $env.GITHUB_OUTPUT
     } else if $os =~ 'windows' {
         let archive = $"($dist)/($release_name).zip"
-        7z a $archive ...(glob *)
+        # Exclude .msi and .zip files to prevent including the installer or the archive itself
+        let files = (glob * | where ($it | path parse | get extension | $in not-in ['msi', 'zip']))
+        7z a $archive ...$files
         if ($archive | path exists) {
             let normalized_archive = ($archive | str replace --all '\' '/')
             echo $"archive=($normalized_archive)(char nl)" o>> $env.GITHUB_OUTPUT
@@ -196,7 +198,8 @@ def run_build [] {
             if $can_build_msi and (wix --version | split row . | first | into int) >= 6 {
                 print $"(char nl)Building MSI package..."
                 cd $src; cd wix; mkdir $bin
-                cp -r ($"($dist)/*" | into glob) $"($bin)/"
+                # Copy only base assets to the target folder, excluding any existing archives or installers
+                glob $"($dist)/*" | where ($it | path parse | get extension | $in not-in ['msi', 'zip']) | each {|it| cp -r $it $"($bin)/" }
 
                 let arch = if $nu.os-info.arch =~ 'x86_64' { 'x64' } else { 'arm64' }
                 ./($bin)/($bin).exe -c $"PROJECT_NAME=($bin) PROJECT_VERSION=($version) dotnet build -c Release -p:Platform=($arch)"
