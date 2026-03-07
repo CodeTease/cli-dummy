@@ -33,6 +33,7 @@ let all_targets = [
     { target: "aarch64-apple-darwin", os: "macos-latest" },
     { target: "x86_64-apple-darwin", os: "macos-latest" },
     { target: "x86_64-pc-windows-msvc", os: "windows-latest" },
+    { target: "x86_64-pc-windows-gnu", os: "windows-latest" },
     { target: "aarch64-pc-windows-msvc", os: "windows-11-arm" },
     { target: "x86_64-unknown-linux-gnu", os: "ubuntu-24.04" },
     { target: "x86_64-unknown-linux-musl", os: "ubuntu-24.04" },

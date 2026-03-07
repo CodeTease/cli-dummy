@@ -135,7 +135,20 @@ def run_build [] {
 
     # --- Windows Build ---
     if $os =~ 'windows' {
-        do $cargo_build_project
+        match $target {
+            'x86_64-pc-windows-gnu' => {
+                print "Downloading MinGW toolchain..."
+                curl.exe -L -o mingw.7z "https://github.com/niXman/mingw-builds-binaries/releases/download/15.2.0-rt_v13-rev1/x86_64-15.2.0-release-posix-seh-ucrt-rt_v13-rev1.7z"
+                print "Extracting MinGW toolchain..."
+                7z x mingw.7z -y -omingw | ignore
+                $env.PATH = ($env.PATH | split row (char esep) | prepend $"($env.PWD)/mingw/mingw64/bin")
+                $env.CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER = 'gcc'
+                do $cargo_build_project
+            }
+            _ => {
+                do $cargo_build_project
+            }
+        }
     }
 
     # --- Packaging Artifacts ---
