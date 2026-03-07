@@ -189,14 +189,14 @@ let use_nfpm = (try { $config.nfpm.enable } catch { false })
 
 if $use_nfpm and $target == 'x86_64-unknown-linux-gnu' {
     if $USE_UBUNTU and (which nfpm | is-empty) {
-        print "Installing nFPM..."
+        print "[nFPM] Installing nFPM..."
         aria2c https://github.com/goreleaser/nfpm/releases/download/v2.41.2/nfpm_2.41.2_amd64.deb -o nfpm.deb
         sudo dpkg -i nfpm.deb
         rm nfpm.deb
     }
 
     if (which nfpm | is-not-empty) {
-        print $"(char nl)Building Linux packages using nFPM..."
+        print $"(char nl)[nFPM] Building Linux packages..."
         hr-line
         
         $env.ARCH = $nfpm_arch
@@ -210,7 +210,7 @@ if $use_nfpm and $target == 'x86_64-unknown-linux-gnu' {
             cd $src
             ["deb", "rpm", "apk"] | each {|packager|
                 let pkg_file = $"($dist)/($bin)-($version)-($target).($packager)"
-                print $"Packaging ($packager) to ($pkg_file)..."
+                print $"[nFPM] Packaging ($packager) to ($pkg_file)..."
                 nfpm pkg --packager $packager --target $pkg_file
             }
         }
@@ -223,7 +223,7 @@ let can_publish = $cloudsmith_enabled and ($env.CLOUDSMITH_API_KEY? | is-not-emp
 
 if $can_publish {
     let repo = "codetease/tools"
-    let pkgs = (glob ($dist | path join "**" "*.{deb,rpm,apk}" | str replace --all '\' '/'))
+    let pkgs = (ls ($dist | path join "*.{deb,rpm,apk}") | get name)
 
     if ($pkgs | is-not-empty) {
         for pkg in $pkgs {
@@ -238,9 +238,12 @@ if $can_publish {
 
             let pkg_type = if $ext == "apk" { "alpine" } else { $ext }
             
-            print $"Pushing ($ext) to ($target_path)..."
+            print $"[Cloudsmith] Pushing ($ext) to ($target_path)..."
             cloudsmith push $pkg_type $target_path ($pkg | path expand) -k $env.CLOUDSMITH_API_KEY
         }
+    }
+    else {
+        print "[Cloudsmith] Skipping publish: Conditions not met."
     }
 }
 
