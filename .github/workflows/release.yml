@@ -2,7 +2,7 @@
 # REF:
 #   1. https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixinclude
 #
-# Optimized for "CodeTease"
+# Optimized for general-purpose
 name: Create Release Draft
 
 on:

@@ -2,7 +2,7 @@
 
 # Description:
 # A generalized script for cross-compiling and packaging Rust projects.
-# Optimized for CodeTease (No project-level network/TLS).
+# Optimized for general-purpose
 
 def hr-line [--blank_line(-b)] {
     print $"(ansi g)---------------------------------------------------------------------------->(ansi reset)"
