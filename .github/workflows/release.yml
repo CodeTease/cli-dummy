@@ -7,6 +7,15 @@ name: Create Release Draft
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target'
+        required: false
+        type: string
+      os:
+        description: 'OS'
+        required: false
+        type: string
   push:
     tags:
       - 'v*'
@@ -41,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+        include: ${{ fromJSON( inputs.target && inputs.os && format('[{{"os":"{0}","target":"{1}"}}]', inputs.os, inputs.target) || needs.plan.outputs.matrix ) }}
 
     runs-on: ${{matrix.os}}
 
