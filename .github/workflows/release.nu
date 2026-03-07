@@ -5,10 +5,31 @@
 # Optimized for CodeTease (No project-level network/TLS).
 
 # --- Metadata Initialization ---
-let bin     = (open Cargo.toml | get package.name)
-let version = (open Cargo.toml | get package.version)
+let config_file = "release.toml"
+if not ($config_file | path exists) {
+    print $"Error: ($config_file) not found."
+    exit 1
+}
+let config = (open $config_file)
+
+let bin     = (try { $config.metadata.bin } catch { "" })
+let version = (try { $config.metadata.version } catch { "" })
+
+if ($bin | is-empty) or ($version | is-empty) {
+    print "Error: 'metadata.bin' or 'metadata.version' is missing or empty in release.toml"
+    exit 1
+}
+
 let os      = $env.OS
 let target  = $env.TARGET
+
+# Target Early Exit
+let is_target_enabled = (try { $config.targets | get $target } catch { false })
+if $is_target_enabled != true {
+    print $"Target ($target) is not enabled in release.toml. Skipping build."
+    exit 0
+}
+
 let src     = $env.GITHUB_WORKSPACE
 let dist    = $"($env.GITHUB_WORKSPACE)/output"
 
@@ -164,7 +185,9 @@ let nfpm_arch = match $target {
     _ => ''
 }
 
-if $nfpm_arch != '' and ($target | str contains 'linux') {
+let use_nfpm = (try { $config.nfpm.enable } catch { false })
+
+if $use_nfpm and $nfpm_arch != '' and ($target | str contains 'linux') {
     if $USE_UBUNTU and (which nfpm | is-empty) {
         print "Installing nFPM..."
         aria2c https://github.com/goreleaser/nfpm/releases/download/v2.41.2/nfpm_2.41.2_amd64.deb -o nfpm.deb
@@ -195,7 +218,8 @@ if $nfpm_arch != '' and ($target | str contains 'linux') {
 }
 
 let is_tag = ($env.REF? | default "" | str starts-with "refs/tags/")
-let can_publish = ($env.CLOUDSMITH_API_KEY? | is-not-empty) and ($env.PUBLISH? == "true") and $is_tag
+let cloudsmith_enabled = (try { $config.cloudsmith.enable } catch { false })
+let can_publish = $cloudsmith_enabled and ($env.CLOUDSMITH_API_KEY? | is-not-empty) and $is_tag
 
 if $can_publish {
     let repo = "codetease/tools"

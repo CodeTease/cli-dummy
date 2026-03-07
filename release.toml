@@ -1,0 +1,24 @@
+[metadata]
+bin = "cli-dummy"
+version = "0.1.3"
+
+[nfpm]
+enable = true
+
+[cloudsmith]
+enable = false
+
+[targets]
+"aarch64-apple-darwin" = true
+"x86_64-apple-darwin" = true
+"x86_64-pc-windows-msvc" = true
+"aarch64-pc-windows-msvc" = true
+"x86_64-unknown-linux-gnu" = true
+"x86_64-unknown-linux-musl" = true
+"aarch64-unknown-linux-gnu" = true
+"aarch64-unknown-linux-musl" = true
+"armv7-unknown-linux-gnueabihf" = true
+"armv7-unknown-linux-musleabihf" = true
+"riscv64gc-unknown-linux-gnu" = true
+"loongarch64-unknown-linux-gnu" = true
+"loongarch64-unknown-linux-musl" = true

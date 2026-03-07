@@ -1,6 +1,6 @@
 [package]
 name = "cli-dummy"
-version = "0.1.2"
+version = "0.1.3" # Even CLI Dummy has a new version
 authors = ["CodeTease"]
 repository = "https://github.com/CodeTease/cli-dummy"
 # For Homebrew
@@ -12,7 +12,7 @@ edition = "2024"
 [dependencies]
 
 [profile.release]
-opt-level = 3
+opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"

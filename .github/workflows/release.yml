@@ -19,54 +19,29 @@ permissions:
   contents: write
 
 jobs:
+  plan:
+    name: Validate Plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Nushell
+        uses: hustcer/setup-nu@v3
+        with:
+          version: 0.109.1
+      - name: Run Release Plan Validation
+        id: plan
+        run: nu .github/workflows/release-plan.nu
+
   release:
     name: CLI Dummy
+    needs: plan
 
     strategy:
       fail-fast: false
       matrix:
-        target:
-        - aarch64-apple-darwin
-        - x86_64-apple-darwin
-        - x86_64-pc-windows-msvc
-        - aarch64-pc-windows-msvc
-        - x86_64-unknown-linux-gnu
-        - x86_64-unknown-linux-musl
-        - aarch64-unknown-linux-gnu
-        - aarch64-unknown-linux-musl
-        - armv7-unknown-linux-gnueabihf
-        - armv7-unknown-linux-musleabihf
-        - riscv64gc-unknown-linux-gnu
-        - loongarch64-unknown-linux-gnu
-        - loongarch64-unknown-linux-musl
-        include:
-        - target: aarch64-apple-darwin
-          os: macos-latest
-        - target: x86_64-apple-darwin
-          os: macos-latest
-        - target: x86_64-pc-windows-msvc
-          os: windows-latest
-        - target: aarch64-pc-windows-msvc
-          os: windows-11-arm
-        - target: x86_64-unknown-linux-gnu
-          os: ubuntu-24.04
-          publish: true
-        - target: x86_64-unknown-linux-musl
-          os: ubuntu-24.04
-        - target: aarch64-unknown-linux-gnu
-          os: ubuntu-24.04
-        - target: aarch64-unknown-linux-musl
-          os: ubuntu-24.04
-        - target: armv7-unknown-linux-gnueabihf
-          os: ubuntu-24.04
-        - target: armv7-unknown-linux-musleabihf
-          os: ubuntu-24.04
-        - target: riscv64gc-unknown-linux-gnu
-          os: ubuntu-24.04
-        - target: loongarch64-unknown-linux-gnu
-          os: ubuntu-24.04
-        - target: loongarch64-unknown-linux-musl
-          os: ubuntu-24.04
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
 
     runs-on: ${{matrix.os}}
 
@@ -104,15 +79,14 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         enable-cache: false
-      if: ${{ matrix.publish == true && startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
     - name: Install nFPM
       run: |
         echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
         sudo apt update
         sudo apt install nfpm -y
-      # ONLY for "strongest" Linux target since nFPM is cross-platform
-      if: ${{ matrix.publish == true }}
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
     - name: Install aria2
       # Needed for Ubuntu to download cross-toolchains
@@ -124,7 +98,7 @@ jobs:
         # Needed for --system to install packages globally
         sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
         uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
-      if: ${{ matrix.publish == true && startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
     - name: Release Nu Binary
       id: nu
@@ -134,7 +108,6 @@ jobs:
         REF: ${{ github.ref }}
         TARGET: ${{ matrix.target }}
         CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
-        PUBLISH: ${{ matrix.publish || 'false' }}
 
     # WARN: Don't upgrade this action due to the release per asset issue.
     # See: https://github.com/softprops/action-gh-release/issues/445
