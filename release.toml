@@ -14,6 +14,13 @@ deb = "ubuntu/noble"
 rpm = "el/9"
 apk = "alpine/any-version"
 
+[vegh]
+enable = true
+path = "."
+output = "source.vegh"
+version = "0.4.0"
+level = "21"
+
 [targets]
 "aarch64-apple-darwin" = true
 "x86_64-apple-darwin" = true
