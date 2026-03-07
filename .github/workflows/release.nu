@@ -187,7 +187,7 @@ let nfpm_arch = match $target {
 
 let use_nfpm = (try { $config.nfpm.enable } catch { false })
 
-if $use_nfpm and $nfpm_arch != '' and ($target | str contains 'linux') {
+if $use_nfpm and $target == 'x86_64-unknown-linux-gnu' {
     if $USE_UBUNTU and (which nfpm | is-empty) {
         print "Installing nFPM..."
         aria2c https://github.com/goreleaser/nfpm/releases/download/v2.41.2/nfpm_2.41.2_amd64.deb -o nfpm.deb
@@ -219,7 +219,7 @@ if $use_nfpm and $nfpm_arch != '' and ($target | str contains 'linux') {
 
 let is_tag = ($env.REF? | default "" | str starts-with "refs/tags/")
 let cloudsmith_enabled = (try { $config.cloudsmith.enable } catch { false })
-let can_publish = $cloudsmith_enabled and ($env.CLOUDSMITH_API_KEY? | is-not-empty) and $is_tag
+let can_publish = $cloudsmith_enabled and ($env.CLOUDSMITH_API_KEY? | is-not-empty) and $is_tag and $target == 'x86_64-unknown-linux-gnu'
 
 if $can_publish {
     let repo = "codetease/tools"

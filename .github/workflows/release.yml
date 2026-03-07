@@ -79,14 +79,14 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         enable-cache: false
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.target == 'x86_64-unknown-linux-gnu' }}
 
     - name: Install nFPM
       run: |
         echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
         sudo apt update
         sudo apt install nfpm -y
-      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
 
     - name: Install aria2
       # Needed for Ubuntu to download cross-toolchains
@@ -98,9 +98,9 @@ jobs:
         # Needed for --system to install packages globally
         sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
         uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.target == 'x86_64-unknown-linux-gnu' }}
 
-    - name: Release Nu Binary
+    - name: Release Binary
       id: nu
       run: nu .github/workflows/release.nu
       env:
