@@ -7,6 +7,12 @@ enable = true
 
 [cloudsmith]
 enable = false
+repo = "codetease/tools"
+
+[cloudsmith.targets]
+deb = "ubuntu/noble"
+rpm = "el/9"
+apk = "alpine/any-version"
 
 [targets]
 "aarch64-apple-darwin" = true

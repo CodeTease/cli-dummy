@@ -75,12 +75,6 @@ jobs:
       with:
         version: 0.109.1
 
-    - name: Setup UV
-      uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: false
-      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.target == 'x86_64-unknown-linux-gnu' }}
-
     - name: Install nFPM
       run: |
         echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
@@ -93,42 +87,66 @@ jobs:
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: "sudo apt install aria2 -y"
 
-    - name: Install Cloudsmith CLI
-      run: |
-        # Needed for --system to install packages globally
-        sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
-        uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
-      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.target == 'x86_64-unknown-linux-gnu' }}
-
-    - name: Release Binary
-      id: nu
-      run: nu .github/workflows/release.nu
+    - name: Release Binary (Build & Package)
+      run: nu .github/workflows/release.nu build
       env:
         OS: ${{ matrix.os }}
-        REF: ${{ github.ref }}
         TARGET: ${{ matrix.target }}
-        CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
 
-    # WARN: Don't upgrade this action due to the release per asset issue.
-    # See: https://github.com/softprops/action-gh-release/issues/445
-    - name: Publish Archive
-      uses: softprops/action-gh-release@v2.0.5
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v6
       with:
-        draft: true
-        files: |
-          ${{ steps.nu.outputs.msi }}
-          ${{ steps.nu.outputs.archive }}
+        name: release-artifacts-${{ matrix.target }}
+        path: |
+          output/*.msi
+          output/*.zip
+          output/*.tar.gz
           output/*.deb
           output/*.rpm
           output/*.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if-no-files-found: warn
+
+  publish:
+    name: Publish Release
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Nushell
+        uses: hustcer/setup-nu@v3
+        with:
+          version: 0.109.1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: output
+          merge-multiple: true
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+
+      - name: Install Cloudsmith CLI
+        run: |
+          sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
+          uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
+
+      - name: Publish Release Assets & Cloudsmith
+        run: nu .github/workflows/release.nu publish
+        env:
+          REF: ${{ github.ref }}
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   sha256sum:
-    needs: release
+    needs: publish
     name: Create Sha256sum
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
     steps:
     - name: Download Release Archives
       env:
