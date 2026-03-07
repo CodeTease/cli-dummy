@@ -31,3 +31,5 @@ apk = "alpine/any-version"
 "loongarch64-unknown-linux-musl" = true
 "i686-pc-windows-msvc" = true 
 "i686-unknown-linux-gnu" = true
+"s390x-unknown-linux-gnu" = true
+"powerpc64le-unknown-linux-gnu" = true

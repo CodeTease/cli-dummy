@@ -85,6 +85,18 @@ def run_build [] {
                 do $cargo_build_project
             }
 
+            's390x-unknown-linux-gnu' => {
+                sudo apt-get install gcc-s390x-linux-gnu -y
+                $env.CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER = 's390x-linux-gnu-gcc'
+                do $cargo_build_project
+            }
+
+            'powerpc64le-unknown-linux-gnu' => {
+                sudo apt-get install gcc-powerpc64le-linux-gnu -y
+                $env.CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER = 'powerpc64le-linux-gnu-gcc'
+                do $cargo_build_project
+            }
+
             'aarch64-unknown-linux-musl' => {
                 aria2c https://github.com/nushell/integrations/releases/download/build-tools/aarch64-linux-musl-cross.tgz
                 tar -xf aarch64-linux-musl-cross.tgz -C $env.HOME
@@ -223,6 +235,8 @@ def run_build [] {
         'i686-unknown-linux-gnu' => '386'
         'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
         'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'arm7'
+        's390x-unknown-linux-gnu' => 's390x'
+        'powerpc64le-unknown-linux-gnu' => 'ppc64le'
         _ => ''
     }
 

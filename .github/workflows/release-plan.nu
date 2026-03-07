@@ -46,6 +46,8 @@ let all_targets = [
     { target: "riscv64gc-unknown-linux-gnu", os: "ubuntu-24.04" },
     { target: "loongarch64-unknown-linux-gnu", os: "ubuntu-24.04" },
     { target: "loongarch64-unknown-linux-musl", os: "ubuntu-24.04" },
+    { target: "s390x-unknown-linux-gnu", os: "ubuntu-24.04" },
+    { target: "powerpc64le-unknown-linux-gnu", os: "ubuntu-24.04" },
 ]
 
 # Read enabled targets
@@ -70,6 +72,11 @@ if ($active_targets | length) == 0 {
 let has_i686 = ($active_targets | any {|it| $it.target | str starts-with "i686" })
 if $has_i686 {
     print $"(char nl)Warning: i686 is an older architecture. Support might be limited or deprecated in the future."
+}
+
+let has_s390x = ($active_targets | any {|it| $it.target | str starts-with "s390x" })
+if $has_s390x {
+    print $"(char nl)Warning: s390x is a Big Endian risk architecture. Proceed with caution as some libraries may assume Little Endian."
 }
 
 print $"(char nl)Enabled targets:"
