@@ -29,3 +29,5 @@ apk = "alpine/any-version"
 "riscv64gc-unknown-linux-gnu" = true
 "loongarch64-unknown-linux-gnu" = true
 "loongarch64-unknown-linux-musl" = true
+"i686-pc-windows-msvc" = true 
+"i686-unknown-linux-gnu" = true
