@@ -325,32 +325,3 @@ def run_publish [] {
         print "[Cloudsmith] Skipping publish: Conditions not met (disabled, missing API key, or not a tag)."
     }
 }
-
-def run_vegh [] {
-    let config_file = "release.toml"
-    if not ($config_file | path exists) {
-        print $"Error: ($config_file) not found."
-        exit 1
-    }
-    let config = (open $config_file)
-    let bin = (try { $config.metadata.bin } catch { "" })
-
-    let vegh_enabled = (try { $config.vegh.enable } catch { false })
-    let vegh_path = (try { $config.vegh.path } catch { "" })
-    let vegh_output = (try { $config.vegh.output } catch { "" })
-    let vegh_version = (try { $config.vegh.version } catch { "" })
-    let vegh_level = (try { $config.vegh.level } catch { "" })
-    let vegh_comment = (try { "--comment " + $config.vegh.comment } catch { "" })
-
-    if $vegh_enabled {
-        print $"[Vegh] Creating ($vegh_output) for ($bin)..."
-        hr-line
-        
-        if (which vg | is-empty) {
-            print "[Vegh] Installing Vegh CLI"
-            sudo apt install curl -y
-            curl --proto '=https' --tlsv1.2 -LsSf https://github.com/CodeTease/vegh/releases/download/v($vegh_version)/vegh-installer.sh | sh
-        }
-        vg snap $vegh_path --output $vegh_output --level $vegh_level $vegh_comment
-    }
-}
