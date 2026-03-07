@@ -33,9 +33,11 @@ let all_targets = [
     { target: "aarch64-apple-darwin", os: "macos-latest" },
     { target: "x86_64-apple-darwin", os: "macos-latest" },
     { target: "x86_64-pc-windows-msvc", os: "windows-latest" },
+    { target: "i686-pc-windows-msvc", os: "windows-latest" },
     { target: "x86_64-pc-windows-gnu", os: "windows-latest" },
     { target: "aarch64-pc-windows-msvc", os: "windows-11-arm" },
     { target: "x86_64-unknown-linux-gnu", os: "ubuntu-24.04" },
+    { target: "i686-unknown-linux-gnu", os: "ubuntu-24.04" },
     { target: "x86_64-unknown-linux-musl", os: "ubuntu-24.04" },
     { target: "aarch64-unknown-linux-gnu", os: "ubuntu-24.04" },
     { target: "aarch64-unknown-linux-musl", os: "ubuntu-24.04" },
@@ -63,6 +65,11 @@ let active_targets = ($all_targets | where {|it|
 if ($active_targets | length) == 0 {
     print "Error: No targets enabled in release.toml"
     exit 1
+}
+
+let has_i686 = ($active_targets | any {|it| $it.target | str starts-with "i686" })
+if $has_i686 {
+    print $"(char nl)Warning: i686 is an older architecture. Support might be limited or deprecated in the future."
 }
 
 print $"(char nl)Enabled targets:"

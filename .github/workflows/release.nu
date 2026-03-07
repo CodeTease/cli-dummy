@@ -126,6 +126,11 @@ def run_build [] {
                 do $cargo_build_project
             }
 
+            'i686-unknown-linux-gnu' => {
+                sudo apt-get install gcc-multilib -y
+                do $cargo_build_project
+            }
+
             _ => {
                 if $USE_UBUNTU { sudo apt install musl-tools -y }
                 do $cargo_build_project
@@ -215,6 +220,7 @@ def run_build [] {
     # --- nFPM Linux Packaging (deb, rpm, apk) ---
     let nfpm_arch = match $target {
         'x86_64-unknown-linux-gnu' | 'x86_64-unknown-linux-musl' => 'amd64'
+        'i686-unknown-linux-gnu' => '386'
         'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
         'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'arm7'
         _ => ''
@@ -222,7 +228,7 @@ def run_build [] {
 
     let use_nfpm = (try { $config.nfpm.enable } catch { false })
 
-    if $use_nfpm and $target == 'x86_64-unknown-linux-gnu' {
+    if $use_nfpm and ($target in ['x86_64-unknown-linux-gnu', 'i686-unknown-linux-gnu']) {
         if (which nfpm | is-not-empty) {
             print $"(char nl)[nFPM] Building Linux packages..."
             hr-line
