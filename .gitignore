@@ -1,7 +1,7 @@
 /target
 .vscode/
+*.ini
+output/
 
 # Vegh
 *.vegh
-
-*.ini

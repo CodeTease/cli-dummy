@@ -1,6 +1,6 @@
 [metadata]
 bin = "cli-dummy"
-version = "0.1.3"
+version = "0.2.0"
 
 [nfpm]
 enable = true
@@ -13,6 +13,13 @@ repo = "codetease/tools"
 deb = "ubuntu/noble"
 rpm = "el/9"
 apk = "alpine/any-version"
+
+[installer]
+enable = true
+features = ["sh", "ps1"]
+repository = "https://github.com/CodeTease/cli-dummy"
+path = "~/.local/bin"
+path-win = "C:/bin"
 
 [targets]
 "aarch64-apple-darwin" = true

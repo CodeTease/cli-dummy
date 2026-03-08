@@ -281,6 +281,40 @@ def run_publish [] {
         print $"Error: Output directory ($dist) not found. Build is required or artifacts download failed."
         exit 1
     }
+    # 0. Generate Installers
+    let installer_enabled = (try { $config.installer.enable } catch { false })
+    if $installer_enabled {
+        print $"(char nl)[Installer] Generating installer scripts..."
+        hr-line
+        let bin = (try { $config.metadata.bin } catch { "" })
+        let version = (try { $config.metadata.version } catch { "" })
+        let repo = (try { $config.installer.repository } catch { "" })
+        let features = (try { $config.installer.features } catch { [] })
+        let p_linux = (try { $config.installer.path } catch { "~/.local/bin" })
+        let p_win = (try { $config.installer.path-win } catch { "C:/bin/cli-dummy" })
+
+        if "sh" in $features {
+            let tpl_sh = ".github/workflows/installer.template.sh"
+            if ($tpl_sh | path exists) {
+                let content = (open --raw $tpl_sh | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path}}" $p_linux)
+                $content | save --force $"($dist)/install.sh"
+                print $"Generated ($dist)/install.sh"
+            } else {
+                print $"Warning: ($tpl_sh) not found."
+            }
+        }
+
+        if "ps1" in $features {
+            let tpl_ps1 = ".github/workflows/installer.template.ps1"
+            if ($tpl_ps1 | path exists) {
+                let content = (open --raw $tpl_ps1 | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path-win}}" $p_win)
+                $content | save --force $"($dist)/install.ps1"
+                print $"Generated ($dist)/install.ps1"
+            } else {
+                print $"Warning: ($tpl_ps1) not found."
+            }
+        }
+    }
 
     # 1. GitHub Release
     if $is_tag {
@@ -340,8 +374,7 @@ def run_publish [] {
                 print $"[Cloudsmith] Pushing ($ext) to ($target_path)..."
                 cloudsmith push $pkg_type $target_path ($pkg | path expand) -k $env.CLOUDSMITH_API_KEY
             }
-        }
-        else {
+        } else {
             print "[Cloudsmith] Skipping publish: No linux packages found in output directory."
         }
     } else {
