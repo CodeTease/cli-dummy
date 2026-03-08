@@ -1,6 +1,6 @@
 [package]
 name = "cli-dummy"
-version = "0.2.0" # Even CLI Dummy has a new version
+version = "0.2.1" # Even CLI Dummy has a new version
 authors = ["CodeTease"]
 repository = "https://github.com/CodeTease/cli-dummy"
 # For Homebrew

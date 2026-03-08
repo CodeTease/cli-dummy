@@ -194,7 +194,8 @@ def run_build [] {
     if $os in ['macos-latest'] or $USE_UBUNTU {
         let archive = $"($dist)/($release_name).tar.gz"
         mkdir $release_name
-        ls | where name != $release_name | get name | each {|it| mv $it $release_name }
+        let files_to_archive = (ls | where name != $release_name and name !~ '\.(deb|rpm|apk)$' | get name)
+        $files_to_archive | each {|it| mv $it $release_name }
         tar -czf $archive $release_name
         echo $"archive=($archive)(char nl)" o>> $env.GITHUB_OUTPUT
     } else if $os =~ 'windows' {
