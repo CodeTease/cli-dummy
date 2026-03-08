@@ -2,7 +2,8 @@
 
 # Description:
 # A generalized script for cross-compiling and packaging Rust projects.
-# Optimized for general-purpose
+# Originally from NuShell repo, but this script optimized for
+# general-purpose and more features.
 
 def hr-line [--blank_line(-b)] {
     print $"(ansi g)---------------------------------------------------------------------------->(ansi reset)"
@@ -346,25 +347,15 @@ def run_publish [] {
         let version = (try { $config.metadata.version } catch { "" })
         let features = (try { $config.installer.features } catch { [] })
 
-        let target_names = {
-            "aarch64-apple-darwin": "macOS ARM64",
-            "x86_64-apple-darwin": "macOS x64",
-            "x86_64-pc-windows-msvc": "Windows x64",
-            "i686-pc-windows-msvc": "Windows x86",
-            "x86_64-pc-windows-gnu": "Windows x64 (GNU)",
-            "aarch64-pc-windows-msvc": "Windows ARM64",
-            "x86_64-unknown-linux-gnu": "Linux x64",
-            "i686-unknown-linux-gnu": "Linux x86",
-            "x86_64-unknown-linux-musl": "Linux x64 (musl)",
-            "aarch64-unknown-linux-gnu": "Linux ARM64",
-            "aarch64-unknown-linux-musl": "Linux ARM64 (musl)",
-            "armv7-unknown-linux-gnueabihf": "Linux ARMv7",
-            "armv7-unknown-linux-musleabihf": "Linux ARMv7 (musl)",
-            "riscv64gc-unknown-linux-gnu": "Linux RISC-V 64",
-            "loongarch64-unknown-linux-gnu": "Linux LoongArch64",
-            "loongarch64-unknown-linux-musl": "Linux LoongArch64 (musl)",
-            "s390x-unknown-linux-gnu": "Linux s390x",
-            "powerpc64le-unknown-linux-gnu": "Linux ppc64le"
+        let matrix_str = ($env.MATRIX? | default "[]")
+        let target_names = if ($matrix_str == "[]" or ($matrix_str | is-empty)) {
+            {}
+        } else {
+            let matrix_items = ($matrix_str | from json)
+            $matrix_items | reduce -f {} {|it, acc| 
+                let dname = (try { $it.display_name } catch { $it.target })
+                $acc | insert $it.target $dname 
+            }
         }
 
         let assets_for_table = (ls $dist | where type == file | get name | where {|f|
