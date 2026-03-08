@@ -322,14 +322,128 @@ def run_publish [] {
         hr-line
         let tag_name = ($env.REF | str replace 'refs/tags/' '')
         
+        let bin = (try { $config.metadata.bin } catch { "" })
+        let version = (try { $config.metadata.version } catch { "" })
+        let features = (try { $config.installer.features } catch { [] })
+
+        let target_names = {
+            "aarch64-apple-darwin": "macOS ARM64",
+            "x86_64-apple-darwin": "macOS x64",
+            "x86_64-pc-windows-msvc": "Windows x64",
+            "i686-pc-windows-msvc": "Windows x86",
+            "x86_64-pc-windows-gnu": "Windows x64 (GNU)",
+            "aarch64-pc-windows-msvc": "Windows ARM64",
+            "x86_64-unknown-linux-gnu": "Linux x64",
+            "i686-unknown-linux-gnu": "Linux x86",
+            "x86_64-unknown-linux-musl": "Linux x64 (musl)",
+            "aarch64-unknown-linux-gnu": "Linux ARM64",
+            "aarch64-unknown-linux-musl": "Linux ARM64 (musl)",
+            "armv7-unknown-linux-gnueabihf": "Linux ARMv7",
+            "armv7-unknown-linux-musleabihf": "Linux ARMv7 (musl)",
+            "riscv64gc-unknown-linux-gnu": "Linux RISC-V 64",
+            "loongarch64-unknown-linux-gnu": "Linux LoongArch64",
+            "loongarch64-unknown-linux-musl": "Linux LoongArch64 (musl)",
+            "s390x-unknown-linux-gnu": "Linux s390x",
+            "powerpc64le-unknown-linux-gnu": "Linux ppc64le"
+        }
+
+        let assets_for_table = (ls $dist | where type == file | get name | where {|f|
+            let base = ($f | path basename)
+            not ($base in ['install.sh', 'install.ps1']) and not ($base | str ends-with ".sha256")
+        })
+
+        mut rows = ["| Operating System & Architecture | Format | Checksum (SHA256) |", "|---|---|---|"]
+        
+        mut has_i686 = false
+        mut has_s390x = false
+
+        for file in $assets_for_table {
+            let base = ($file | path basename)
+            let sha = (try { ^sha256sum $file | split row ' ' | first } catch { "UNKNOWN" })
+            
+            let ext = if ($base | str ends-with ".tar.gz") {
+                ".tar.gz"
+            } else if ($base | str ends-with ".zip") {
+                ".zip"
+            } else if ($base | str ends-with ".msi") {
+                ".msi"
+            } else if ($base | str ends-with ".deb") {
+                ".deb"
+            } else if ($base | str ends-with ".rpm") {
+                ".rpm"
+            } else if ($base | str ends-with ".apk") {
+                ".apk"
+            } else {
+                ""
+            }
+
+            if $ext != "" {
+                let without_prefix = ($base | str replace $"($bin)-($version)-" "")
+                let target_str = ($without_prefix | str replace $ext "")
+                
+                if ($target_str | str starts-with "i686") { $has_i686 = true }
+                if ($target_str | str starts-with "s390x") { $has_s390x = true }
+
+                let os_arch = (try { $target_names | get $target_str } catch { $target_str })
+                $rows = ($rows | append $"| ($os_arch) | `($ext)` | `($sha)` |")
+            }
+        }
+        
+        mut notes_lines = []
+        $notes_lines = ($notes_lines | append "### 📦 Target List")
+        $notes_lines = ($notes_lines | append "")
+        $notes_lines = ($notes_lines | append $rows)
+        $notes_lines = ($notes_lines | append "")
+
+        if $installer_enabled {
+            let github_repo = ($env.GITHUB_REPOSITORY? | default "OWNER/REPO")
+            $notes_lines = ($notes_lines | append "### 🚀 Quick Installer Guide")
+            $notes_lines = ($notes_lines | append "")
+            
+            if "ps1" in $features {
+                $notes_lines = ($notes_lines | append "**Windows**:")
+                $notes_lines = ($notes_lines | append "Instructions on using the command to execute `install.ps1`. This script automatically handles decompression and checks the CPU architecture (AMD64/ARM64).")
+                $notes_lines = ($notes_lines | append "```powershell")
+                $notes_lines = ($notes_lines | append $"irm https://github.com/($github_repo)/releases/latest/download/install.ps1 | iex")
+                $notes_lines = ($notes_lines | append "```")
+                $notes_lines = ($notes_lines | append "")
+            }
+            if "sh" in $features {
+                $notes_lines = ($notes_lines | append "**Linux/macOS**:")
+                $notes_lines = ($notes_lines | append "Instructions to execute the `install.sh`. This script automatically detects the OS (Linux/Darwin) and architecture to load the correct assets from the repository.")
+                $notes_lines = ($notes_lines | append "```bash")
+                $notes_lines = ($notes_lines | append $"curl -fsSL https://github.com/($github_repo)/releases/latest/download/install.sh | bash")
+                $notes_lines = ($notes_lines | append "```")
+                $notes_lines = ($notes_lines | append "")
+            }
+        }
+
+        if $has_i686 or $has_s390x {
+            $notes_lines = ($notes_lines | append "### ⚠️ Additional Information")
+            $notes_lines = ($notes_lines | append "")
+            if $has_i686 {
+                $notes_lines = ($notes_lines | append "> **Note on `i686`**: This is an older legacy architecture. Support might be limited or deprecated in the future.")
+                $notes_lines = ($notes_lines | append "")
+            }
+            if $has_s390x {
+                $notes_lines = ($notes_lines | append "> **Note on `s390x`**: This is a Big Endian risk architecture. Proceed with caution as some libraries may assume Little Endian.")
+                $notes_lines = ($notes_lines | append "")
+            }
+        }
+
+        let notes_file = $"($dist)/RELEASE_NOTES.md"
+        ($notes_lines | str join (char nl)) | save --force $notes_file
+
         # Check if release exists
         let release_exists = (try { gh release view $tag_name | complete } catch { {exit_code: 1} })
         if $release_exists.exit_code != 0 {
-            gh release create $tag_name --draft --title $"Release ($tag_name)" --generate-notes
+            gh release create $tag_name --draft --title $"Release ($tag_name)" --notes-file $notes_file
+        } else {
+            gh release edit $tag_name --notes-file $notes_file
         }
         
         # Upload all assets in dist
-        let assets = (glob $"($dist)/*")
+        let assets = (glob $"($dist)/*" | where {|f| ($f | path basename) != "RELEASE_NOTES.md"})
         if ($assets | is-not-empty) {
             gh release upload $tag_name ...$assets --clobber
         } else {
