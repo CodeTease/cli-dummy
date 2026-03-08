@@ -337,6 +337,55 @@ def run_publish [] {
         }
     }
 
+    # 0.75 Generate PKGBUILD for AUR
+    let aur_enabled = (try { $config.aur.enable } catch { false })
+    let p_template = ".github/workflows/PKGBUILD.template"
+    if $aur_enabled and ($p_template | path exists) {
+        print $"(char nl)[AUR] Generating PKGBUILD and .SRCINFO..."
+        hr-line
+
+        let bin_name = (try { $config.metadata.bin } catch { "" })
+        let bin_version = (try { $config.metadata.version } catch { "" })
+        let repo = (try { $config.metadata.repository } catch { "" })
+        let maintainer = (try { $config.metadata.maintainer } catch { "Maintainer" })
+        let description = (try { $config.metadata.description } catch { "" })
+        let license = (try { $config.metadata.license } catch { "MIT" })
+
+        # Calculate SHA256 of the linux archives
+        let x86_archive = $"($dist)/($bin_name)-($bin_version)-x86_64-unknown-linux-gnu.tar.gz"
+        let arch_archive = $"($dist)/($bin_name)-($bin_version)-aarch64-unknown-linux-gnu.tar.gz"
+
+        let sha256_x86 = if ($x86_archive | path exists) {
+            try { ^sha256sum $x86_archive | split row ' ' | first } catch { "SKIP" }
+        } else { "SKIP" }
+        
+        let sha256_aarch64 = if ($arch_archive | path exists) {
+            try { ^sha256sum $arch_archive | split row ' ' | first } catch { "SKIP" }
+        } else { "SKIP" }
+
+        let p_content = (open --raw $p_template 
+            | str replace --all "{{bin}}" $bin_name 
+            | str replace --all "{{version}}" $bin_version 
+            | str replace --all "{{repository}}" $repo
+            | str replace --all "{{maintainer}}" $maintainer
+            | str replace --all "{{description}}" $description
+            | str replace --all "{{license}}" $license
+            | str replace --all "{{sha256_x86_64}}" $sha256_x86
+            | str replace --all "{{sha256_aarch64}}" $sha256_aarch64)
+        
+        $p_content | save --force $"($dist)/PKGBUILD"
+        print $"Generated ($dist)/PKGBUILD"
+
+        # Generate .SRCINFO
+        print "Generating .SRCINFO via Docker..."
+        try {
+            ^docker run --rm -v $"($dist):/pkg" archlinux /bin/bash -c "useradd -m build && pacman -Sy --noconfirm base-devel sudo git && chown -R build:build /pkg && cp /pkg/PKGBUILD /home/build/ && cd /home/build && sudo -u build makepkg --printsrcinfo > .SRCINFO && cp .SRCINFO /pkg/"
+            print $"Generated ($dist)/.SRCINFO"
+        } catch {
+            print "Failed to generate .SRCINFO via docker"
+        }
+    }
+
     # 1. GitHub Release
     if $is_tag {
         print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."
@@ -360,7 +409,7 @@ def run_publish [] {
 
         let assets_for_table = (ls $dist | where type == file | get name | where {|f|
             let base = ($f | path basename)
-            not ($base in ['install.sh', 'install.ps1']) and not ($base | str ends-with ".sha256")
+            not ($base in ['install.sh', 'install.ps1', 'PKGBUILD', '.SRCINFO']) and not ($base | str ends-with ".sha256")
         })
 
         mut rows = ["| Operating System & Architecture | Format | Checksum (SHA256) |", "|---|---|---|"]
@@ -454,7 +503,7 @@ def run_publish [] {
         }
         
         # Upload all assets in dist
-        let assets = (glob $"($dist)/*" | where {|f| ($f | path basename) != "RELEASE_NOTES.md"})
+        let assets = (glob $"($dist)/*" | where {|f| not ($f | path basename | $in in ["RELEASE_NOTES.md", "PKGBUILD", ".SRCINFO"])})
         if ($assets | is-not-empty) {
             gh release upload $tag_name ...$assets --clobber
         } else {

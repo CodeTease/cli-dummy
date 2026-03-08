@@ -1,0 +1,19 @@
+# Maintainer: {{maintainer}}
+pkgname={{bin}}-bin
+pkgver={{version}}
+pkgrel=1
+pkgdesc="{{description}}"
+arch=('x86_64' 'aarch64')
+url="{{repository}}"
+license=('{{license}}')
+provides=('{{bin}}')
+conflicts=('{{bin}}')
+source_x86_64=("${url}/releases/download/v${pkgver}/{{bin}}-${pkgver}-x86_64-unknown-linux-gnu.tar.gz")
+source_aarch64=("${url}/releases/download/v${pkgver}/{{bin}}-${pkgver}-aarch64-unknown-linux-gnu.tar.gz")
+sha256sums_x86_64=('{{sha256_x86_64}}')
+sha256sums_aarch64=('{{sha256_aarch64}}')
+
+package() {
+    install -Dm755 "${srcdir}/{{bin}}" "${pkgdir}/usr/bin/{{bin}}"
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

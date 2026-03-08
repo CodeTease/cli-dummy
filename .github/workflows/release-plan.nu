@@ -80,6 +80,16 @@ if $use_installer {
     print "Validated installer configuration."
 }
 
+# Validate AUR configuration
+let use_aur = (try { $config.aur.enable } catch { false })
+if $use_aur {
+    if not (".github/workflows/PKGBUILD.template" | path exists) {
+        print "Error: .github/workflows/PKGBUILD.template missing"
+        exit 1
+    }
+    print "Validated AUR configuration."
+}
+
 # Load Targets Matrix mapping
 let all_targets = [
     { target: "aarch64-apple-darwin", os: "macos-latest", display_name: "macOS ARM64" },

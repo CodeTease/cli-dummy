@@ -12,6 +12,9 @@ description = "A dummy CLI tool"
 [nfpm]
 enable = true
 
+[aur]
+enable = true
+
 [cloudsmith]
 enable = true
 repo = "codetease/tools"
