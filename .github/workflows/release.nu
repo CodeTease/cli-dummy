@@ -255,7 +255,7 @@ def run_publish [] {
         hr-line
         let bin = (try { $config.metadata.bin } catch { "" })
         let version = (try { $config.metadata.version } catch { "" })
-        let repo = (try { $config.installer.repository } catch { "" })
+        let repo = (try { $config.metadata.repository } catch { "" })
         let features = (try { $config.installer.features } catch { [] })
         let p_linux = (try { $config.installer.path } catch { "~/.local/bin" })
         let p_win = (try { $config.installer.path-win } catch { "C:/bin/cli-dummy" })

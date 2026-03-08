@@ -1,6 +1,7 @@
 [metadata]
 bin = "cli-dummy"
 version = "0.2.0"
+repository = "https://github.com/CodeTease/cli-dummy"
 
 # For future use
 license = "MIT"
@@ -23,7 +24,6 @@ apk = "alpine/any-version"
 [installer]
 enable = true
 features = ["sh", "ps1"]
-repository = "https://github.com/CodeTease/cli-dummy"
 path = "~/.local/bin"
 path-win = "C:/bin"
 
