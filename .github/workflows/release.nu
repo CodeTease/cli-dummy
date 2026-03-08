@@ -230,41 +230,6 @@ def run_build [] {
         }
     }
 
-    # --- nFPM Linux Packaging (deb, rpm, apk) ---
-    let nfpm_arch = match $target {
-        'x86_64-unknown-linux-gnu' | 'x86_64-unknown-linux-musl' => 'amd64'
-        'i686-unknown-linux-gnu' => '386'
-        'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
-        'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'arm7'
-        's390x-unknown-linux-gnu' => 's390x'
-        'powerpc64le-unknown-linux-gnu' => 'ppc64le'
-        _ => ''
-    }
-
-    let use_nfpm = (try { $config.nfpm.enable } catch { false })
-
-    if $use_nfpm and ($target in ['x86_64-unknown-linux-gnu', 'i686-unknown-linux-gnu']) {
-        if (which nfpm | is-not-empty) {
-            print $"(char nl)[nFPM] Building Linux packages..."
-            hr-line
-            
-            $env.ARCH = $nfpm_arch
-            $env.VERSION = $version
-            
-            # Ensure binary is at project root for nfpm.yaml as specified in 'contents'
-            let binary_path = $"($src)/target/($target)/release/($bin)"
-            if ($binary_path | path exists) {
-                cp -v $binary_path $"($src)/($bin)"
-                
-                cd $src
-                ["deb", "rpm", "apk"] | each {|packager|
-                    let pkg_file = $"($dist)/($bin)-($version)-($target).($packager)"
-                    print $"[nFPM] Packaging ($packager) to ($pkg_file)..."
-                    nfpm pkg --packager $packager --target $pkg_file
-                }
-            }
-        }
-    }
 }
 
 def run_publish [] {
@@ -313,6 +278,60 @@ def run_publish [] {
                 print $"Generated ($dist)/install.ps1"
             } else {
                 print $"Warning: ($tpl_ps1) not found."
+            }
+        }
+    }
+
+    # 0.5. Generate nFPM Packages
+    let bin_name = (try { $config.metadata.bin } catch { "" })
+    let bin_version = (try { $config.metadata.version } catch { "" })
+    let use_nfpm = (try { $config.nfpm.enable } catch { false })
+
+    if $use_nfpm and (which nfpm | is-not-empty) {
+        print $"(char nl)[nFPM] Building Linux packages from artifacts..."
+        hr-line
+        
+        let archives = (glob $"($dist)/*.tar.gz" | where {|f| ($f | path basename) =~ "linux" })
+        
+        for archive in $archives {
+            let base = ($archive | path basename | str replace ".tar.gz" "")
+            let target_str = ($base | str replace $"($bin_name)-($bin_version)-" "")
+            
+            let nfpm_arch = match $target_str {
+                'x86_64-unknown-linux-gnu' | 'x86_64-unknown-linux-musl' => 'amd64'
+                'i686-unknown-linux-gnu' => '386'
+                'aarch64-unknown-linux-gnu' | 'aarch64-unknown-linux-musl' => 'arm64'
+                'armv7-unknown-linux-gnueabihf' | 'armv7-unknown-linux-musleabihf' => 'arm7'
+                's390x-unknown-linux-gnu' => 's390x'
+                'powerpc64le-unknown-linux-gnu' => 'ppc64le'
+                _ => ''
+            }
+            
+            if $nfpm_arch != "" {
+                print $"[nFPM] Processing ($target_str) for ($nfpm_arch)..."
+                let tmp_dir = $"($dist)/tmp_($target_str)"
+                mkdir $tmp_dir
+                
+                # Extract the tar.gz exactly into it
+                tar -xzf $archive -C $tmp_dir
+                
+                let bin_path = $"($tmp_dir)/($base)/($bin_name)"
+                
+                if ($bin_path | path exists) {
+                    cp -v $bin_path $"($env.GITHUB_WORKSPACE)/($bin_name)"
+                    
+                    with-env { ARCH: $nfpm_arch, VERSION: $bin_version } {
+                        cd $env.GITHUB_WORKSPACE
+                        ["deb", "rpm", "apk"] | each {|packager|
+                            let pkg_file = $"($dist)/($bin_name)-($bin_version)-($target_str).($packager)"
+                            print $"  -> Packaging ($packager)..."
+                            nfpm pkg --packager $packager --target $pkg_file
+                        }
+                    }
+                }
+                
+                rm -rf $tmp_dir
+                rm -f $"($env.GITHUB_WORKSPACE)/($bin_name)"
             }
         }
     }

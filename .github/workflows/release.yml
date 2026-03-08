@@ -84,13 +84,6 @@ jobs:
       with:
         version: 0.109.1
 
-    - name: Install nFPM
-      run: |
-        echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
-        sudo apt update
-        sudo apt install nfpm -y
-      if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'i686-unknown-linux-gnu' }}
-
     - name: Install aria2
       # Needed for Ubuntu to download cross-toolchains
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
@@ -143,6 +136,12 @@ jobs:
         run: |
           sudo chown -R $USER /usr/local/lib/python* /usr/local/bin
           uv pip install --upgrade --system --break-system-packages cloudsmith-cli requests
+
+      - name: Install nFPM
+        run: |
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt update
+          sudo apt install nfpm -y
 
       - name: Publish Release Assets & Cloudsmith
         run: nu .github/workflows/release.nu publish
