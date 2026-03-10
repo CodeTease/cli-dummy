@@ -19,6 +19,10 @@ enable = true
 enable = true
 repo = "codetease/tools"
 
+[brew]
+enable = true
+tap = "CodeTease/homebrew-tap"
+
 [cloudsmith.targets]
 deb = "ubuntu/noble"
 rpm = "el/9"

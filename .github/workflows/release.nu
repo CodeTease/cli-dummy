@@ -386,6 +386,60 @@ def run_publish [] {
         }
     }
 
+    # 0.85 Generate Homebrew Formula
+    let brew_enabled = (try { $config.brew.enable } catch { false })
+    let f_template = ".github/workflows/Formula.template.rb"
+    if $brew_enabled and ($f_template | path exists) {
+        print $"(char nl)[Homebrew] Generating Formula..."
+        hr-line
+
+        let bin_name = (try { $config.metadata.bin } catch { "" })
+        let class_name = ($bin_name | split row '-' | each { |it| $it | str capitalize } | str join '')
+        let bin_version = (try { $config.metadata.version } catch { "" })
+        let repo = (try { $config.metadata.repository } catch { "" })
+        let homepage = (try { $config.metadata.homepage } catch { "" })
+        let description = (try { $config.metadata.description } catch { "" })
+        let license = (try { $config.metadata.license } catch { "MIT" })
+
+        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+
+        let url_mac_amd   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-apple-darwin.tar.gz"
+        let url_mac_arm   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-apple-darwin.tar.gz"
+        let url_linux_amd = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-unknown-linux-gnu.tar.gz"
+        let url_linux_arm = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-unknown-linux-gnu.tar.gz"
+
+        let f_mac_amd = (try { ls $"($dist)/*x86_64*apple-darwin*.tar.gz" | get name | first } catch { "" })
+        let hash_mac_amd = if $f_mac_amd != "" { try { ^sha256sum $f_mac_amd | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_mac_arm = (try { ls $"($dist)/*aarch64*apple-darwin*.tar.gz" | get name | first } catch { "" })
+        let hash_mac_arm = if $f_mac_arm != "" { try { ^sha256sum $f_mac_arm | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_linux_amd = (try { ls $"($dist)/*x86_64*unknown-linux-gnu*.tar.gz" | get name | first } catch { "" })
+        let hash_linux_amd = if $f_linux_amd != "" { try { ^sha256sum $f_linux_amd | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_linux_arm = (try { ls $"($dist)/*aarch64*unknown-linux-gnu*.tar.gz" | get name | first } catch { "" })
+        let hash_linux_arm = if $f_linux_arm != "" { try { ^sha256sum $f_linux_arm | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_content = (open --raw $f_template
+            | str replace --all "{{class_name}}" $class_name
+            | str replace --all "{{description}}" $description
+            | str replace --all "{{homepage}}" $homepage
+            | str replace --all "{{version}}" $bin_version
+            | str replace --all "{{license}}" $license
+            | str replace --all "{{bin}}" $bin_name
+            | str replace --all "{{url_mac_amd}}" $url_mac_amd
+            | str replace --all "{{sha256_mac_amd}}" $hash_mac_amd
+            | str replace --all "{{url_mac_arm}}" $url_mac_arm
+            | str replace --all "{{sha256_mac_arm}}" $hash_mac_arm
+            | str replace --all "{{url_linux_amd}}" $url_linux_amd
+            | str replace --all "{{sha256_linux_amd}}" $hash_linux_amd
+            | str replace --all "{{url_linux_arm}}" $url_linux_arm
+            | str replace --all "{{sha256_linux_arm}}" $hash_linux_arm)
+        
+        $f_content | save --force $"($dist)/($bin_name).rb"
+        print $"Generated ($dist)/($bin_name).rb"
+    }
+
     # 1. GitHub Release
     if $is_tag {
         print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."
