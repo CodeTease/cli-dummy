@@ -440,6 +440,53 @@ def run_publish [] {
         print $"Generated ($dist)/($bin_name).rb"
     }
 
+    # 0.90 Generate Scoop Manifest
+    let scoop_enabled = (try { $config.scoop.enable } catch { false })
+    let s_template = ".github/workflows/Scoop.template.json"
+    if $scoop_enabled and ($s_template | path exists) {
+        print $"(char nl)[Scoop] Generating Manifest..."
+        hr-line
+
+        let bin_name = (try { $config.metadata.bin } catch { "" })
+        let bin_version = (try { $config.metadata.version } catch { "" })
+        let repo = (try { $config.metadata.repository } catch { "" })
+        let homepage = (try { $config.metadata.homepage } catch { "" })
+        let description = (try { $config.metadata.description } catch { "" })
+        let license = (try { $config.metadata.license } catch { "MIT" })
+
+        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+
+        let url_win_x64   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-pc-windows-msvc.zip"
+        let url_win_x86   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-i686-pc-windows-msvc.zip"
+        let url_win_arm64 = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-pc-windows-msvc.zip"
+
+        let f_win_x64 = (try { ls $"($dist)/*x86_64-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let hash_win_x64 = if $f_win_x64 != "" { try { ^sha256sum $f_win_x64 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_win_x86 = (try { ls $"($dist)/*i686-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let hash_win_x86 = if $f_win_x86 != "" { try { ^sha256sum $f_win_x86 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let f_win_arm64 = (try { ls $"($dist)/*aarch64-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let hash_win_arm64 = if $f_win_arm64 != "" { try { ^sha256sum $f_win_arm64 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
+
+        let s_content = (open --raw $s_template
+            | str replace --all "{{description}}" $description
+            | str replace --all "{{homepage}}" $homepage
+            | str replace --all "{{version}}" $bin_version
+            | str replace --all "{{license}}" $license
+            | str replace --all "{{bin}}" $bin_name
+            | str replace --all "{{repository}}" $repo
+            | str replace --all "{{url_win_x64}}" $url_win_x64
+            | str replace --all "{{sha256_win_x64}}" $hash_win_x64
+            | str replace --all "{{url_win_x86}}" $url_win_x86
+            | str replace --all "{{sha256_win_x86}}" $hash_win_x86
+            | str replace --all "{{url_win_arm64}}" $url_win_arm64
+            | str replace --all "{{sha256_win_arm64}}" $hash_win_arm64)
+        
+        $s_content | save --force $"($dist)/($bin_name).json"
+        print $"Generated ($dist)/($bin_name).json"
+    }
+
     # 1. GitHub Release
     if $is_tag {
         print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."

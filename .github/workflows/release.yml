@@ -313,3 +313,71 @@ jobs:
               }
           }
         shell: nu {0}
+
+  scoop_publish:
+    name: Publish to Scoop Bucket
+    needs: publish
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: output
+          merge-multiple: true
+
+      - name: Setup Nushell
+        uses: hustcer/setup-nu@v3
+        with:
+          version: 0.109.1
+
+      - name: Publish to Scoop
+        env:
+          SCOOP_TOKEN: ${{ secrets.SCOOP_TOKEN }}
+        run: |
+          def main [] {
+              let config = (open release.toml)
+              let scoop_enabled = (try { $config.scoop.enable } catch { false })
+              if not $scoop_enabled {
+                  print "Scoop publishing is disabled in release.toml"
+                  exit 0
+              }
+
+              let bucket = (try { $config.scoop.bucket } catch { "CodeTease/scoop-bucket" })
+              let bin = (try { $config.metadata.bin } catch { "" })
+              
+              if ($env.SCOOP_TOKEN | is-empty) {
+                  print "Error: SCOOP_TOKEN secret is not set."
+                  exit 1
+              }
+
+              let repo_url = $"https://($env.SCOOP_TOKEN)@github.com/($bucket).git"
+              
+              git clone $repo_url scoop-repo
+              
+              let json_file = $"output/($bin).json"
+              if not ($json_file | path exists) {
+                  print $"Error: ($json_file) missing. Cannot publish to Scoop."
+                  exit 1
+              }
+
+              mkdir "scoop-repo/bucket"
+              cp $json_file $"scoop-repo/bucket/($bin).json"
+              
+              cd scoop-repo
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add $"bucket/($bin).json"
+              
+              let status = (git status --porcelain)
+              if ($status | is-empty) {
+                  print "No changes to commit for Scoop Bucket."
+              } else {
+                  git commit -m $"Update ($bin) to ($env.GITHUB_REF_NAME)"
+                  git pull --rebase
+                  git push
+              }
+          }
+        shell: nu {0}

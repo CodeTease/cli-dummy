@@ -1,13 +1,13 @@
 [metadata]
-bin = "cli-dummy"
-version = "0.2.0"
-repository = "https://github.com/CodeTease/cli-dummy"
+bin = "template"
+version = "0.1.0"
+repository = "https://github.com/your-name/your-repo"
 
 # For future use
 license = "MIT"
-homepage = "https://github.com/CodeTease/cli-dummy"
-maintainer = "CodeTease"
-description = "A dummy CLI tool"
+homepage = "https://github.com/your-name/your-repo"
+maintainer = "your-name"
+description = "Something about your tool"
 
 [nfpm]
 enable = true
@@ -17,15 +17,15 @@ enable = true
 
 [cloudsmith]
 enable = true
-repo = "codetease/tools"
+repo = "your-name/your-repo"
 
 [brew]
 enable = true
-tap = "CodeTease/homebrew-tap"
+tap = "your-name/homebrew-tap"
 
 [scoop]
 enable = true
-bucket = "CodeTease/scoop-bucket"
+bucket = "your-name/scoop-bucket"
 
 [cloudsmith.targets]
 deb = "ubuntu/noble"
