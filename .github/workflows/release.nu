@@ -410,7 +410,7 @@ def run_publish [] {
         # Generate .SRCINFO
         print "Generating .SRCINFO via Docker..."
         try {
-            ^docker run --rm -v $"($dist):/pkg" archlinux /bin/bash -c "useradd -m build && pacman -Sy --noconfirm base-devel sudo git && chown -R build:build /pkg && cp /pkg/PKGBUILD /home/build/ && cd /home/build && sudo -u build makepkg --printsrcinfo > .SRCINFO && cp .SRCINFO /pkg/"
+            ^docker run --rm -v $"($dist):/pkg" archlinux /bin/bash -c "HOST_UID=$(stat -c %u /pkg/PKGBUILD); HOST_GID=$(stat -c %g /pkg/PKGBUILD); useradd -m build && pacman -Sy --noconfirm base-devel sudo git && cp /pkg/PKGBUILD /home/build/ && chown -R build:build /home/build && cd /home/build && sudo -u build makepkg --printsrcinfo > .SRCINFO && cp .SRCINFO /pkg/ && chown $HOST_UID:$HOST_GID /pkg/.SRCINFO"
             print $"Generated ($dist)/.SRCINFO"
 
             let arch_pkg = $"($bin_name)-($bin_version)-archlinux-pkgbuild.tar.gz"
