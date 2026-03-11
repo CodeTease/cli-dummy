@@ -27,6 +27,10 @@ tap = "CodeTease/homebrew-tap"
 enable = true
 bucket = "CodeTease/scoop-bucket"
 
+[nuget]
+enable = true
+authors = "CodeTease"
+
 [cloudsmith.targets]
 deb = "ubuntu/noble"
 rpm = "el/9"
@@ -53,7 +57,7 @@ path-win = "C:/bin"
 "riscv64gc-unknown-linux-gnu" = true
 "loongarch64-unknown-linux-gnu" = true
 "loongarch64-unknown-linux-musl" = true
-"i686-pc-windows-msvc" = true 
+"i686-pc-windows-msvc" = true
 "i686-unknown-linux-gnu" = true
 "s390x-unknown-linux-gnu" = true
 "powerpc64le-unknown-linux-gnu" = true

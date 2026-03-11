@@ -68,6 +68,10 @@ jobs:
         $env:PATH = "$wixPath;$env:PATH"
         wix --version
 
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2.0.1
+      if: ${{ startsWith(matrix.os, 'windows') }}
+
     - name: Update Rust Toolchain Target
       run: |
         echo -e "[toolchain]\nchannel = '1.93.1'\ntargets = ['${{matrix.target}}']" > rust-toolchain.toml
@@ -106,6 +110,7 @@ jobs:
           output/*.deb
           output/*.rpm
           output/*.apk
+          output/*.nupkg
         if-no-files-found: warn
 
   publish:

@@ -1,59 +1,81 @@
+# General project metadata used for packaging, manifests, and release notes.
 [metadata]
-bin = "template"
-version = "0.1.0"
-repository = "https://github.com/your-name/your-repo"
+bin = "template"                                  # Name of the binary to be produced
+version = "0.1.0"                                  # Current version of the project
+repository = "https://github.com/your-name/your-repo" # Project's GitHub repository URL
 
-# For future use
-license = "MIT"
-homepage = "https://github.com/your-name/your-repo"
-maintainer = "your-name"
-description = "Something about your tool"
+# Optional metadata for manifests (Brew, Scoop, NuGet, AUR, etc.)
+license = "MIT"                                   # Project license (e.g., MIT, Apache-2.0)
+homepage = "https://github.com/your-name/your-repo" # Project's homepage or documentation
+maintainer = "your-name"                           # Maintainer handle (used in AUR/NuGet)
+description = "Something about your tool"          # Short description of the project
 
+# nFPM configuration for building Linux packages (.deb, .rpm, .apk)
 [nfpm]
-enable = true
+enable = true                                     # Enable generation of native Linux packages via nFPM
 
+# AUR (Arch User Repository) configuration
 [aur]
-enable = true
+enable = true                                     # Enable generation of PKGBUILD and .SRCINFO for Arch Linux
+username = "github-actions"                       # Git username for pushing to AUR (optional)
+email = "actions@github.com"                      # Git email for pushing to AUR (optional)
 
+# Cloudsmith configuration for hosting packages
 [cloudsmith]
-enable = true
-repo = "your-name/your-repo"
+enable = true                                     # Enable publishing packages to Cloudsmith
+repo = "your-name/your-repo"                      # Cloudsmith repository path (owner/repo)
 
+# Homebrew configuration
 [brew]
-enable = true
-tap = "your-name/homebrew-tap"
+enable = true                                     # Enable generation of Homebrew Formula (.rb)
+tap = "your-name/homebrew-tap"                    # Your Homebrew tap repository (owner/homebrew-tap)
 
+# Scoop configuration (Windows package manager)
 [scoop]
-enable = true
-bucket = "your-name/scoop-bucket"
+enable = true                                     # Enable generation of Scoop manifest (.json)
+bucket = "your-name/scoop-bucket"                 # Your Scoop bucket repository (owner/scoop-bucket)
 
+# NuGet configuration (for Windows artifacts)
+# Publish to Cloudsmith
+# Also this works with Chocolatey/PowerShell
+[nuget]
+enable = true                                     # Enable generation of NuGet packages (.nupkg)
+authors = "your-name"                             # Author(s) to be listed in the NuGet manifest
+
+# Distribution mappings for Cloudsmith
+# Maps package extensions to specific Cloudsmith distributions/versions
 [cloudsmith.targets]
-deb = "ubuntu/noble"
-rpm = "el/9"
-apk = "alpine/any-version"
+deb = "ubuntu/noble"                              # Target distribution for Debian packages
+rpm = "el/9"                                      # Target distribution for RPM packages
+apk = "alpine/any-version"                        # Target distribution for Alpine packages
 
+# Quick-installer script generation
 [installer]
-enable = true
-features = ["sh", "ps1"]
-path = "~/.local/bin"
-path-win = "C:/bin"
+enable = true                                     # Enable generation of install.sh and install.ps1
+features = ["sh", "ps1"]                          # Which installer scripts to generate
+path = "~/.local/bin"                             # Default installation path for Linux/macOS
+path-win = "C:/bin/cli-dummy"                     # Default installation path for Windows
 
+# Compilation targets
+# Set a target to true to enable cross-compilation for that platform
 [targets]
-"aarch64-apple-darwin" = true
-"x86_64-apple-darwin" = true
-"x86_64-pc-windows-msvc" = true
-"x86_64-pc-windows-gnu" = true
-"aarch64-pc-windows-msvc" = true
-"x86_64-unknown-linux-gnu" = true
-"x86_64-unknown-linux-musl" = true
-"aarch64-unknown-linux-gnu" = true
-"aarch64-unknown-linux-musl" = true
-"armv7-unknown-linux-gnueabihf" = true
-"armv7-unknown-linux-musleabihf" = true
-"riscv64gc-unknown-linux-gnu" = true
-"loongarch64-unknown-linux-gnu" = true
-"loongarch64-unknown-linux-musl" = true
-"i686-pc-windows-msvc" = true 
-"i686-unknown-linux-gnu" = true
-"s390x-unknown-linux-gnu" = true
-"powerpc64le-unknown-linux-gnu" = true
+"aarch64-apple-darwin" = true        # macOS (Apple Silicon)
+"x86_64-apple-darwin" = true         # macOS (Intel)
+"x86_64-pc-windows-msvc" = true      # Windows (x64, MSVC)
+"x86_64-pc-windows-gnu" = true       # Windows (x64, MinGW/GNU)
+"aarch64-pc-windows-msvc" = true     # Windows (ARM64)
+"x86_64-unknown-linux-gnu" = true    # Linux (x64, glibc)
+"x86_64-unknown-linux-musl" = true   # Linux (x64, musl/static)
+"aarch64-unknown-linux-gnu" = true   # Linux (ARM64, glibc)
+"aarch64-unknown-linux-musl" = true  # Linux (ARM64, musl/static)
+"armv7-unknown-linux-gnueabihf" = true # Linux (ARMv7, hard-float)
+"armv7-unknown-linux-musleabihf" = true # Linux (ARMv7, musl hard-float)
+"riscv64gc-unknown-linux-gnu" = true # Linux (RISC-V 64-bit)
+"loongarch64-unknown-linux-gnu" = true # Linux (LoongArch 64-bit, glibc)
+"loongarch64-unknown-linux-musl" = true # Linux (LoongArch 64-bit, musl)
+"i686-pc-windows-msvc" = true        # Windows (x86, MSVC)
+"i686-unknown-linux-gnu" = true      # Linux (x86, glibc)
+"s390x-unknown-linux-gnu" = true     # Linux (IBM Z / s390x)
+"powerpc64le-unknown-linux-gnu" = true # Linux (POWER8/9, Little Endian)
+
+

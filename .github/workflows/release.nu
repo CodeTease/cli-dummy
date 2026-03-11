@@ -229,6 +229,37 @@ def run_build [] {
                 echo $"msi=($final_msi | str replace --all '\' '/')(char nl)" o>> $env.GITHUB_OUTPUT
             }
         }
+
+        # NuGet packaging
+        let nuget_enabled = (try { $config.nuget.enable } catch { false })
+        if $nuget_enabled and $target == "x86_64-pc-windows-msvc" {
+            let n_template = $"($env.GITHUB_WORKSPACE)/.github/workflows/Nuspec.template.xml"
+            if ($n_template | path exists) {
+                print $"(char nl)Building NuGet package..."
+                let authors = (try { $config.nuget.authors } catch { (try { $config.metadata.maintainer } catch { "Maintainer" }) })
+                let description = (try { $config.metadata.description } catch { "" })
+                let repo = (try { $config.metadata.repository } catch { "" })
+
+                let n_content = (open --raw $n_template
+                    | str replace --all "{{bin}}" $bin
+                    | str replace --all "{{version}}" $version
+                    | str replace --all "{{authors}}" $authors
+                    | str replace --all "{{description}}" $description
+                    | str replace --all "{{repository}}" $repo)
+                
+                let nuspec_file = $"($dist)/($bin).nuspec"
+                $n_content | save --force $nuspec_file
+                
+                try {
+                    ^nuget pack $nuspec_file -OutputDirectory $dist
+                    print $"Created NuGet package in ($dist)"
+                } catch {
+                    print "Failed to create NuGet package. Is nuget.exe available?"
+                }
+            } else {
+                print $"Warning: ($n_template) not found. Skipping NuGet package."
+            }
+        }
     }
 
 }
@@ -579,6 +610,20 @@ def run_publish [] {
             }
         }
 
+        let nuget_enabled = (try { $config.nuget.enable } catch { false })
+        if $nuget_enabled {
+            let cloudsmith_repo = (try { $config.cloudsmith.repo } catch { "codetease/tools" })
+            let feed_url = $"https://nuget.cloudsmith.io/($cloudsmith_repo)/v2/"
+            
+            $notes_lines = ($notes_lines | append "**PowerShell (NuGet)**:")
+            $notes_lines = ($notes_lines | append "You can install the package via NuGet in PowerShell:")
+            $notes_lines = ($notes_lines | append "```powershell")
+            $notes_lines = ($notes_lines | append $"Register-PackageSource -Name Cloudsmith -ProviderName NuGet -Location \"($feed_url)\"")
+            $notes_lines = ($notes_lines | append $"Install-Package ($bin) -Source Cloudsmith")
+            $notes_lines = ($notes_lines | append "```")
+            $notes_lines = ($notes_lines | append "")
+        }
+
         if $has_i686 or $has_s390x {
             $notes_lines = ($notes_lines | append "### ⚠️ Additional Information")
             $notes_lines = ($notes_lines | append "")
@@ -630,7 +675,7 @@ def run_publish [] {
             exit 1
         }
 
-        let pkgs = (try { ls ($dist | path join "*.{deb,rpm,apk}") | get name } catch { [] })
+        let pkgs = (try { ls ($dist | path join "*.{deb,rpm,apk,nupkg}") | get name } catch { [] })
 
         if ($pkgs | is-not-empty) {
             for pkg in $pkgs {
@@ -638,13 +683,16 @@ def run_publish [] {
 
                 let fallback_path = $"($repo)/any/version"
                 let target_path_suffix = (try { $targets_mapping | get $ext } catch { "" })
-                let target_path = if ($target_path_suffix | is-empty) {
+                
+                let target_path = if $ext == "nupkg" {
+                    $repo
+                } else if ($target_path_suffix | is-empty) {
                     $fallback_path
                 } else {
                     $"($repo)/($target_path_suffix)"
                 }
 
-                let pkg_type = if $ext == "apk" { "alpine" } else { $ext }
+                let pkg_type = if $ext == "apk" { "alpine" } else if $ext == "nupkg" { "nuget" } else { $ext }
                 
                 print $"[Cloudsmith] Pushing ($ext) to ($target_path)..."
                 cloudsmith push $pkg_type $target_path ($pkg | path expand) -k $env.CLOUDSMITH_API_KEY
