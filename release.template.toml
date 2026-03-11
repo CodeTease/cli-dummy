@@ -24,6 +24,7 @@ email = "actions@github.com"                      # Git email for pushing to AUR
 [cloudsmith]
 enable = true                                     # Enable publishing packages to Cloudsmith
 repo = "your-name/your-repo"                      # Cloudsmith repository path (owner/repo)
+docs_path = "REGISTRY.md"                         # The output filename for registry integration instructions
 
 # Homebrew configuration
 [brew]

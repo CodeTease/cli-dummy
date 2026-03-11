@@ -13,11 +13,12 @@ description = "A dummy CLI tool"
 enable = true
 
 [aur]
-enable = true
+enable = false
 
 [cloudsmith]
 enable = true
 repo = "codetease/tools"
+docs_path = "REGISTRY.md"
 
 [brew]
 enable = true

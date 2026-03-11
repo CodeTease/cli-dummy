@@ -518,6 +518,25 @@ def run_publish [] {
         print $"Generated ($dist)/($bin_name).json"
     }
 
+    # 0.95 Generate Registry Info
+    let cloudsmith_enabled = (try { $config.cloudsmith.enable } catch { false })
+    let docs_path = (try { $config.cloudsmith.docs_path } catch { "" })
+    let r_template = ".github/workflows/Registry.template.md"
+    if $cloudsmith_enabled and $docs_path != "" and ($r_template | path exists) {
+        print $"(char nl)[Registry] Generating Registry instructions..."
+        hr-line
+
+        let bin_name = (try { $config.metadata.bin } catch { "" })
+        let repo_path = (try { $config.cloudsmith.repo } catch { "" })
+
+        let r_content = (open --raw $r_template
+            | str replace --all "{{bin}}" $bin_name
+            | str replace --all "{{repo_path}}" $repo_path)
+        
+        $r_content | save --force $"($dist)/($docs_path)"
+        print $"Generated ($dist)/($docs_path)"
+    }
+
     # 1. GitHub Release
     if $is_tag {
         print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."
@@ -610,17 +629,9 @@ def run_publish [] {
             }
         }
 
-        let nuget_enabled = (try { $config.nuget.enable } catch { false })
-        if $nuget_enabled {
-            let cloudsmith_repo = (try { $config.cloudsmith.repo } catch { "codetease/tools" })
-            let feed_url = $"https://nuget.cloudsmith.io/($cloudsmith_repo)/v2/"
-            
-            $notes_lines = ($notes_lines | append "**PowerShell (NuGet)**:")
-            $notes_lines = ($notes_lines | append "You can install the package via NuGet in PowerShell:")
-            $notes_lines = ($notes_lines | append "```powershell")
-            $notes_lines = ($notes_lines | append $"Register-PackageSource -Name Cloudsmith -ProviderName NuGet -Location \"($feed_url)\"")
-            $notes_lines = ($notes_lines | append $"Install-Package ($bin) -Source Cloudsmith")
-            $notes_lines = ($notes_lines | append "```")
+        let docs_path = (try { $config.cloudsmith.docs_path } catch { "" })
+        if $docs_path != "" and ($dist | path join $docs_path | path exists) {
+            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please see the instructions at [Registry Setup Guide]\(./($docs_path)\)")
             $notes_lines = ($notes_lines | append "")
         }
 
