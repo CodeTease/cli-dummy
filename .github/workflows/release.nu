@@ -354,7 +354,15 @@ def run_publish [] {
                     
                     with-env { ARCH: $nfpm_arch, VERSION: $bin_version } {
                         cd $env.GITHUB_WORKSPACE
-                        ["deb", "rpm", "apk"] | each {|packager|
+                        
+                        let is_musl = ($target_str | str contains "musl")
+                        let packagers = if $is_musl {
+                            ["apk"]
+                        } else {
+                            ["deb", "rpm"]
+                        }
+                        
+                        $packagers | each {|packager|
                             let pkg_file = $"($dist)/($bin_name)-($bin_version)-($target_str).($packager)"
                             print $"  -> Packaging ($packager)..."
                             nfpm pkg --packager $packager --target $pkg_file
