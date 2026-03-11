@@ -662,7 +662,7 @@ def run_publish [] {
         # Check if release exists
         let release_exists = (try { gh release view $tag_name | complete } catch { {exit_code: 1} })
         if $release_exists.exit_code != 0 {
-            gh release create $tag_name --draft --title $"Release ($tag_name)" --notes-file $notes_file
+            gh release create $tag_name --draft --title $"($tag_name)" --notes-file $notes_file
         } else {
             gh release edit $tag_name --notes-file $notes_file
         }
