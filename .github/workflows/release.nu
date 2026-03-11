@@ -15,14 +15,14 @@ def main [command?: string] {
     match $cmd {
         "build" => { run_build }
         "publish" => { run_publish }
-        _ => { print $"Unknown command: ($cmd)"; exit 1 }
+        _ => { print $"::error::Unknown command: ($cmd)"; exit 1 }
     }
 }
 
 def run_build [] {
     let config_file = "release.toml"
     if not ($config_file | path exists) {
-        print $"Error: ($config_file) not found."
+        print $"::error::($config_file) not found."
         exit 1
     }
     let config = (open $config_file)
@@ -31,7 +31,7 @@ def run_build [] {
     let version = (try { $config.metadata.version } catch { "" })
 
     if ($bin | is-empty) or ($version | is-empty) {
-        print "Error: 'metadata.bin' or 'metadata.version' is missing or empty in release.toml"
+        print "::error::'metadata.bin' or 'metadata.version' is missing or empty in release.toml"
         exit 1
     }
 
@@ -267,7 +267,7 @@ def run_build [] {
 def run_publish [] {
     let config_file = "release.toml"
     if not ($config_file | path exists) {
-        print $"Error: ($config_file) not found."
+        print $"::error::($config_file) not found."
         exit 1
     }
     let config = (open $config_file)
@@ -276,7 +276,7 @@ def run_publish [] {
     
     let dist = $"($env.GITHUB_WORKSPACE)/output"
     if not ($dist | path exists) {
-        print $"Error: Output directory ($dist) not found. Build is required or artifacts download failed."
+        print $"::error::Output directory ($dist) not found. Build is required or artifacts download failed."
         exit 1
     }
     # 0. Generate Installers
@@ -690,7 +690,7 @@ def run_publish [] {
         hr-line
         
         if (which cloudsmith | is-empty) {
-            print "Cloudsmith CLI not found."
+            print "::error::Cloudsmith CLI not found."
             exit 1
         }
 

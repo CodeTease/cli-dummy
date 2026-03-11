@@ -160,12 +160,12 @@ if ($active_targets | length) == 0 {
 
 let has_i686 = ($active_targets | any {|it| $it.target | str starts-with "i686" })
 if $has_i686 {
-    print $"(char nl)Warning: i686 is an older architecture. Support might be limited or deprecated in the future."
+    print $"(char nl)::warning::i686 is an older architecture. Support might be limited or deprecated in the future."
 }
 
 let has_s390x = ($active_targets | any {|it| $it.target | str starts-with "s390x" })
 if $has_s390x {
-    print $"(char nl)Warning: s390x is a Big Endian risk architecture. Proceed with caution as some libraries may assume Little Endian."
+    print $"(char nl)::warning::s390x is a Big Endian risk architecture. Proceed with caution as some libraries may assume Little Endian."
 }
 
 print $"(char nl)Enabled targets:"
