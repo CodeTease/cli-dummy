@@ -46,20 +46,9 @@ if $is_tag and $github_event_name != "workflow_dispatch" {
 # Validate installer configuration and templates
 let use_installer = (try { $config.installer.enable } catch { false })
 if $use_installer {
-    let repo = (try { $config.installer.repository } catch { "" })
-    if ($repo | is-empty) {
-        print "Error: 'installer.repository' missing or empty in release.toml"
-        exit 1
-    }
-
     let features = (try { $config.installer.features } catch { [] })
     
     if "sh" in $features {
-        let p_linux = (try { $config.installer.path } catch { "" })
-        if ($p_linux | is-empty) {
-            print "Error: 'installer.path' missing or empty in release.toml"
-            exit 1
-        }
         if not (".github/workflows/installer.template.sh" | path exists) {
             print "Error: .github/workflows/installer.template.sh missing"
             exit 1
@@ -67,11 +56,6 @@ if $use_installer {
     }
     
     if "ps1" in $features {
-        let p_win = (try { $config.installer.path-win } catch { "" })
-        if ($p_win | is-empty) {
-            print "Error: 'installer.path-win' missing or empty in release.toml"
-            exit 1
-        }
         if not (".github/workflows/installer.template.ps1" | path exists) {
             print "Error: .github/workflows/installer.template.ps1 missing"
             exit 1
@@ -80,14 +64,57 @@ if $use_installer {
     print "Validated installer configuration."
 }
 
-# Validate AUR configuration
-let use_aur = (try { $config.aur.enable } catch { false })
-if $use_aur {
+# Validate Arch Linux configuration
+let use_arch = (try { $config.archlinux.enable } catch { false })
+if $use_arch {
     if not (".github/workflows/PKGBUILD.template" | path exists) {
         print "Error: .github/workflows/PKGBUILD.template missing"
         exit 1
     }
-    print "Validated AUR configuration."
+    print "Validated Arch Linux configuration."
+}
+
+# Validate Homebrew configuration
+let use_brew = (try { $config.brew.enable } catch { false })
+if $use_brew {
+    if not (".github/workflows/Formula.template.rb" | path exists) {
+        print "Error: .github/workflows/Formula.template.rb missing"
+        exit 1
+    }
+    print "Validated Homebrew configuration."
+}
+
+# Validate Scoop configuration
+let use_scoop = (try { $config.scoop.enable } catch { false })
+if $use_scoop {
+    if not (".github/workflows/Scoop.template.json" | path exists) {
+        print "Error: .github/workflows/Scoop.template.json missing"
+        exit 1
+    }
+    print "Validated Scoop configuration."
+}
+
+# Validate Cloudsmith Registry configuration
+let use_cloudsmith = (try { $config.cloudsmith.enable } catch { false })
+if $use_cloudsmith {
+    let docs_path = (try { $config.cloudsmith.docs_path } catch { "" })
+    if $docs_path != "" {
+        if not (".github/workflows/Registry.template.md" | path exists) {
+            print "Error: .github/workflows/Registry.template.md missing"
+            exit 1
+        }
+    }
+    print "Validated Cloudsmith Registry configuration."
+}
+
+# Validate NuGet configuration
+let use_nuget = (try { $config.nuget.enable } catch { false })
+if $use_nuget {
+    if not (".github/workflows/Nuspec.template.xml" | path exists) {
+        print "Error: .github/workflows/Nuspec.template.xml missing"
+        exit 1
+    }
+    print "Validated NuGet configuration."
 }
 
 # Load Targets Matrix mapping

@@ -289,7 +289,7 @@ def run_publish [] {
         let repo = (try { $config.metadata.repository } catch { "" })
         let features = (try { $config.installer.features } catch { [] })
         let p_linux = (try { $config.installer.path } catch { "~/.local/bin" })
-        let p_win = (try { $config.installer.path-win } catch { "C:/bin/cli-dummy" })
+        let p_win = (try { $config.installer.path-win } catch { "C:/bin" })
 
         if "sh" in $features {
             let tpl_sh = ".github/workflows/installer.template.sh"
