@@ -12,8 +12,8 @@ description = "A dummy CLI tool"
 [nfpm]
 enable = true
 
-[aur]
-enable = false
+[archlinux]
+enable = true
 
 [cloudsmith]
 enable = true

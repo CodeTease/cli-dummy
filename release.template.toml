@@ -14,11 +14,9 @@ description = "Something about your tool"          # Short description of the pr
 [nfpm]
 enable = true                                     # Enable generation of native Linux packages via nFPM
 
-# AUR (Arch User Repository) configuration
-[aur]
+# Arch Linux configuration
+[archlinux]
 enable = true                                     # Enable generation of PKGBUILD and .SRCINFO for Arch Linux
-username = "github-actions"                       # Git username for pushing to AUR (optional)
-email = "actions@github.com"                      # Git email for pushing to AUR (optional)
 
 # Cloudsmith configuration for hosting packages
 [cloudsmith]

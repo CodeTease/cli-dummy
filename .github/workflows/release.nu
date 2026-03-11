@@ -368,11 +368,11 @@ def run_publish [] {
         }
     }
 
-    # 0.75 Generate PKGBUILD for AUR
-    let aur_enabled = (try { $config.aur.enable } catch { false })
+    # 0.75 Generate PKGBUILD for Arch Linux
+    let arch_enabled = (try { $config.archlinux.enable } catch { false })
     let p_template = ".github/workflows/PKGBUILD.template"
-    if $aur_enabled and ($p_template | path exists) {
-        print $"(char nl)[AUR] Generating PKGBUILD and .SRCINFO..."
+    if $arch_enabled and ($p_template | path exists) {
+        print $"(char nl)[Arch Linux] Generating PKGBUILD and .SRCINFO..."
         hr-line
 
         let bin_name = (try { $config.metadata.bin } catch { "" })
@@ -412,6 +412,10 @@ def run_publish [] {
         try {
             ^docker run --rm -v $"($dist):/pkg" archlinux /bin/bash -c "useradd -m build && pacman -Sy --noconfirm base-devel sudo git && chown -R build:build /pkg && cp /pkg/PKGBUILD /home/build/ && cd /home/build && sudo -u build makepkg --printsrcinfo > .SRCINFO && cp .SRCINFO /pkg/"
             print $"Generated ($dist)/.SRCINFO"
+
+            let arch_pkg = $"($bin_name)-($bin_version)-archlinux-pkgbuild.tar.gz"
+            tar -czf $"($dist)/($arch_pkg)" -C $dist PKGBUILD .SRCINFO
+            print $"Generated ($dist)/($arch_pkg)"
         } catch {
             print "Failed to generate .SRCINFO via docker"
         }
@@ -527,11 +531,15 @@ def run_publish [] {
         hr-line
 
         let bin_name = (try { $config.metadata.bin } catch { "" })
+        let bin_version = (try { $config.metadata.version } catch { "" })
         let repo_path = (try { $config.cloudsmith.repo } catch { "" })
+        let repo_url = (try { $config.metadata.repository } catch { "" })
 
         let r_content = (open --raw $r_template
             | str replace --all "{{bin}}" $bin_name
-            | str replace --all "{{repo_path}}" $repo_path)
+            | str replace --all "{{version}}" $bin_version
+            | str replace --all "{{repo_path}}" $repo_path
+            | str replace --all "{{repository}}" $repo_url)
         
         $r_content | save --force $"($dist)/($docs_path)"
         print $"Generated ($dist)/($docs_path)"
@@ -615,7 +623,7 @@ def run_publish [] {
                 $notes_lines = ($notes_lines | append "**Windows**:")
                 $notes_lines = ($notes_lines | append "Instructions on using the command to execute `install.ps1`. This script automatically handles decompression and checks the CPU architecture (AMD64/ARM64).")
                 $notes_lines = ($notes_lines | append "```powershell")
-                $notes_lines = ($notes_lines | append $"irm https://github.com/($github_repo)/releases/latest/download/install.ps1 | iex")
+                $notes_lines = ($notes_lines | append $"irm 'https://github.com/($github_repo)/releases/latest/download/install.ps1' | iex")
                 $notes_lines = ($notes_lines | append "```")
                 $notes_lines = ($notes_lines | append "")
             }
@@ -623,7 +631,7 @@ def run_publish [] {
                 $notes_lines = ($notes_lines | append "**Linux/macOS**:")
                 $notes_lines = ($notes_lines | append "Instructions to execute the `install.sh`. This script automatically detects the OS (Linux/Darwin) and architecture to load the correct assets from the repository.")
                 $notes_lines = ($notes_lines | append "```bash")
-                $notes_lines = ($notes_lines | append $"curl -fsSL https://github.com/($github_repo)/releases/latest/download/install.sh | bash")
+                $notes_lines = ($notes_lines | append $"curl -fsSL 'https://github.com/($github_repo)/releases/latest/download/install.sh' | bash")
                 $notes_lines = ($notes_lines | append "```")
                 $notes_lines = ($notes_lines | append "")
             }

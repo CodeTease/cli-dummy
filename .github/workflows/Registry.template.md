@@ -26,6 +26,14 @@ curl -1sLf 'https://dl.cloudsmith.io/public/{{repo_path}}/setup.alpine.sh' | sud
 apk add {{bin}}
 ```
 
+### Arch Linux (PKGBUILD)
+You can build and install the package using the provided `PKGBUILD` artifact from GitHub Releases.
+```bash
+curl -LO {{repository}}/releases/download/v{{version}}/{{bin}}-{{version}}-archlinux-pkgbuild.tar.gz
+tar -xzf {{bin}}-{{version}}-archlinux-pkgbuild.tar.gz
+makepkg -si
+```
+
 ## Windows (NuGet)
 To install the package via NuGet in PowerShell, register the Cloudsmith feed and install it:
 ```powershell
