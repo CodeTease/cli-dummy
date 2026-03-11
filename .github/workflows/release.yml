@@ -156,6 +156,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MATRIX: ${{ needs.plan.outputs.matrix }}
 
+      - name: Upload Registry Manifests
+        uses: actions/upload-artifact@v6
+        with:
+          name: registry-manifests
+          path: |
+            output/*.rb
+            output/*.json
+
   sha256sum:
     needs: publish
     name: Create Sha256sum

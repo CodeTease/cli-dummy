@@ -443,16 +443,16 @@ def run_publish [] {
         let url_linux_amd = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-unknown-linux-gnu.tar.gz"
         let url_linux_arm = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-unknown-linux-gnu.tar.gz"
 
-        let f_mac_amd = (try { ls $"($dist)/*x86_64*apple-darwin*.tar.gz" | get name | first } catch { "" })
+        let f_mac_amd = (try { glob $"($dist)/*x86_64*apple-darwin*.tar.gz" | first } catch { "" })
         let hash_mac_amd = if $f_mac_amd != "" { try { ^sha256sum $f_mac_amd | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
-        let f_mac_arm = (try { ls $"($dist)/*aarch64*apple-darwin*.tar.gz" | get name | first } catch { "" })
+        let f_mac_arm = (try { glob $"($dist)/*aarch64*apple-darwin*.tar.gz" | first } catch { "" })
         let hash_mac_arm = if $f_mac_arm != "" { try { ^sha256sum $f_mac_arm | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
-        let f_linux_amd = (try { ls $"($dist)/*x86_64*unknown-linux-gnu*.tar.gz" | get name | first } catch { "" })
+        let f_linux_amd = (try { glob $"($dist)/*x86_64*unknown-linux-gnu*.tar.gz" | first } catch { "" })
         let hash_linux_amd = if $f_linux_amd != "" { try { ^sha256sum $f_linux_amd | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
-        let f_linux_arm = (try { ls $"($dist)/*aarch64*unknown-linux-gnu*.tar.gz" | get name | first } catch { "" })
+        let f_linux_arm = (try { glob $"($dist)/*aarch64*unknown-linux-gnu*.tar.gz" | first } catch { "" })
         let hash_linux_arm = if $f_linux_arm != "" { try { ^sha256sum $f_linux_arm | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
         let f_content = (open --raw $f_template
@@ -495,13 +495,13 @@ def run_publish [] {
         let url_win_x86   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-i686-pc-windows-msvc.zip"
         let url_win_arm64 = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-pc-windows-msvc.zip"
 
-        let f_win_x64 = (try { ls $"($dist)/*x86_64-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let f_win_x64 = (try { glob $"($dist)/*x86_64-pc-windows-msvc*.zip" | first } catch { "" })
         let hash_win_x64 = if $f_win_x64 != "" { try { ^sha256sum $f_win_x64 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
-        let f_win_x86 = (try { ls $"($dist)/*i686-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let f_win_x86 = (try { glob $"($dist)/*i686-pc-windows-msvc*.zip" | first } catch { "" })
         let hash_win_x86 = if $f_win_x86 != "" { try { ^sha256sum $f_win_x86 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
-        let f_win_arm64 = (try { ls $"($dist)/*aarch64-pc-windows-msvc*.zip" | get name | first } catch { "" })
+        let f_win_arm64 = (try { glob $"($dist)/*aarch64-pc-windows-msvc*.zip" | first } catch { "" })
         let hash_win_arm64 = if $f_win_arm64 != "" { try { ^sha256sum $f_win_arm64 | split row ' ' | first } catch { "SKIP" } } else { "SKIP" }
 
         let s_content = (open --raw $s_template
@@ -694,7 +694,7 @@ def run_publish [] {
             exit 1
         }
 
-        let pkgs = (try { ls ($dist | path join "*.{deb,rpm,apk,nupkg}") | get name } catch { [] })
+        let pkgs = (try { ls $dist | where type == file | get name | where { |f| $f =~ '\.(deb|rpm|apk|nupkg)$' } } catch { [] })
 
         if ($pkgs | is-not-empty) {
             for pkg in $pkgs {
