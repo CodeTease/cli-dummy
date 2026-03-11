@@ -11,9 +11,9 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0"
-clap = "4.5"
-reqwest = "0.11"
-tokio = "1"
+clap = { version = "4.5", features = ["derive"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+tokio = { version = "1", features = ["full"] }
 
 [profile.release]
 opt-level = "z"

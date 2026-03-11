@@ -36,9 +36,10 @@ async fn main() -> Result<()> {
         Err(e) => {
             // Print the full error chain to help identify specific TLS handshake or cert issues
             eprintln!("Error encountered during fetch:");
-            let mut chain = e.chain();
-            while let Some(cause) = chain.next() {
+            let mut current: Option<&dyn std::error::Error> = Some(&e);
+            while let Some(cause) = current {
                 eprintln!("  - caused by: {}", cause);
+                current = cause.source();
             }
             
             if e.is_connect() {
