@@ -10,10 +10,10 @@ description = "A dummy CLI tool"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.102"
-clap = "4.5.60"
-reqwest = "0.13.2"
-tokio = "1.50.0"
+anyhow = "1.0"
+clap = "4.5"
+reqwest = "0.11"
+tokio = "1"
 
 [profile.release]
 opt-level = "z"
