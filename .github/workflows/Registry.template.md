@@ -37,8 +37,8 @@ makepkg -si
 ## Windows (NuGet)
 To install the package via NuGet in PowerShell, register the Cloudsmith feed and install it:
 ```powershell
-Register-PackageSource -Name Cloudsmith -ProviderName NuGet -Location "https://nuget.cloudsmith.io/{{repo_path}}/v3/index.json"
-Install-Package {{bin}} -Source Cloudsmith
+Register-PackageSource -Name '{{repo_path}}' -ProviderName NuGet -Location "https://nuget.cloudsmith.io/{{repo_path}}/v3/index.json"
+Install-Package {{bin}} -Source '{{repo_path}}'
 ```
 
 Chocolatey:
@@ -49,8 +49,8 @@ choco install {{bin}} -s {{repo_path}}
 
 PowerShell:
 ```powershell
-Register-PackageSource -Name '{{repo_path}}' -Location "https://nuget.cloudsmith.io/{{repo_path}}/v2" -Trusted
-Register-PSRepository -Name '{{repo_path}}' -SourceLocation "https://nuget.cloudsmith.io/{{repo_path}}/v2" -InstallationPolicy 'trusted'
+Register-PackageSource -Name '{{repo_path}}' -ProviderName NuGet -Location "https://nuget.cloudsmith.io/{{repo_path}}/v2/" -Trusted
+Register-PSRepository -Name '{{repo_path}}' -SourceLocation "https://nuget.cloudsmith.io/{{repo_path}}/v2/" -InstallationPolicy 'trusted'
 
 Install-Package {{bin}} -Source '{{repo_path}}'
 # Or
