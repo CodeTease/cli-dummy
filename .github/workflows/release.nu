@@ -645,9 +645,9 @@ def run_publish [] {
             }
         }
 
-        let docs_path = (try { $config.cloudsmith.docs_path } catch { "" })
-        if $docs_path != "" and ($dist | path join $docs_path | path exists) {
-            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please see the instructions at [Registry Setup Guide]\(./($docs_path)\)")
+        if ($dist | path join "REGISTRY.md" | path exists) {
+            let github_repo = ($env.GITHUB_REPOSITORY? | default "OWNER/REPO")
+            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please download [REGISTRY.md]\(https://github.com/($github_repo)/releases/download/($tag_name)/REGISTRY.md\) to view the instructions.")
             $notes_lines = ($notes_lines | append "")
         }
 
