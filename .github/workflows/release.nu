@@ -267,14 +267,17 @@ def run_build [] {
 
                 # Calculate WiX architecture
                 let arch = match $target {
-                    'x86_64-pc-windows-msvc' | 'x86_64-pc-windows-gnu' => 'x64'
-                    'i686-pc-windows-msvc' | 'i686-pc-windows-gnu'  => 'x86'
-                    'aarch64-pc-windows-msvc' => 'arm64'
+                    'x86_64-pc-windows-msvc' | 'x86_64-pc-windows-gnu'  => 'x64'
+                    'i686-pc-windows-msvc' | 'i686-pc-windows-gnu'      => 'x86'
+                    'aarch64-pc-windows-msvc' | 'aarch64-pc-windows-gnu' => 'arm64'
                     _ => 'x64'
                 }
 
+                let _hash = ($bin | hash md5)
+                let upgrade_code = $"({$_hash | str substring 0..7})-({$_hash | str substring 8..11})-({$_hash | str substring 12..15})-({$_hash | str substring 16..19})-({$_hash | str substring 20..31})"
+
                 # Fix execution of dotnet build avoiding dummy executable copy-paste
-                with-env { PROJECT_NAME: $bin, PROJECT_VERSION: $version } {
+                with-env { PROJECT_NAME: $bin, PROJECT_VERSION: $version, UPGRADE_CODE: $upgrade_code } {
                     dotnet build -c Release $"-p:Platform=($arch)"
                 }
 

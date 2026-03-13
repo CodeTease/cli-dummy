@@ -3,7 +3,8 @@
     <OutputName>$(PROJECT_NAME)</OutputName>
     <DefineConstants>
       PROJECT_NAME=$(PROJECT_NAME);
-      PROJECT_VERSION=$(PROJECT_VERSION)
+      PROJECT_VERSION=$(PROJECT_VERSION);
+      UPGRADE_CODE=$(UPGRADE_CODE)
     </DefineConstants>
   </PropertyGroup>
   <ItemGroup>
