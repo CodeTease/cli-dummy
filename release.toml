@@ -2,6 +2,7 @@
 bin = "cli-dummy"
 version = "0.3.0"
 repository = "https://github.com/CodeTease/cli-dummy"
+toolchain = "1.93.1"
 
 # For future use
 license = "MIT"

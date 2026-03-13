@@ -3,6 +3,7 @@
 bin = "template"                                  # Name of the binary to be produced
 version = "0.1.0"                                  # Current version of the project
 repository = "https://github.com/your-name/your-repo" # Project's GitHub repository URL
+toolchain = "1.93.1"                               # Rust toolchain version
 
 # Optional metadata for manifests (Brew, Scoop, NuGet, etc.)
 license = "MIT"                                   # Project license (e.g., MIT, Apache-2.0)
