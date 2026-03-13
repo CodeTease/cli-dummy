@@ -10,6 +10,51 @@ def hr-line [--blank_line(-b)] {
     if $blank_line { char nl }
 }
 
+def format_template [
+    template_path: string
+    context: record
+] {
+    let eval_condition = {|cond: string|
+        if ($cond | str starts-with "!") {
+            let c = ($cond | str substring 1..)
+            let val = (try { $context | get $c } catch { false })
+            not $val
+        } else {
+            (try { $context | get $cond } catch { false })
+        }
+    }
+
+    mut filtered_lines = []
+    mut skip_stack = []
+
+    for line in (open --raw $template_path | lines) {
+        let start_match = ($line | parse -r '^\[IF\s+(?<condition>[a-zA-Z0-9._!-]+)\]\s*$')
+        if ($start_match | is-not-empty) {
+            let cond = $start_match.0.condition
+            let is_cond_true = (do $eval_condition $cond)
+            let parent_skip = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
+            $skip_stack = ($skip_stack | append ($parent_skip or not $is_cond_true))
+            continue
+        }
+        
+        let end_match = ($line | parse -r '^\[/IF\]\s*$')
+        if ($end_match | is-not-empty) {
+            if not ($skip_stack | is-empty) {
+                $skip_stack = ($skip_stack | drop 1)
+            }
+            continue
+        }
+        
+        let skip_line = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
+        
+        if not $skip_line {
+            $filtered_lines = ($filtered_lines | append $line)
+        }
+    }
+
+    $filtered_lines | str join (char nl)
+}
+
 def main [command?: string] {
     let cmd = ($command | default "build")
     match $cmd {
@@ -291,10 +336,13 @@ def run_publish [] {
         let p_linux = (try { $config.installer.path } catch { "~/.local/bin" })
         let p_win = (try { $config.installer.path-win } catch { "C:/bin" })
 
+        let target_keys = (try { $config.targets | columns } catch { [] })
+        let targets_context = ($target_keys | reduce -f {} {|it, acc| $acc | insert $"target.($it)" (try { $config.targets | get $it } catch { false }) })
+
         if "sh" in $features {
             let tpl_sh = ".github/workflows/installer.template.sh"
             if ($tpl_sh | path exists) {
-                let content = (open --raw $tpl_sh | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path}}" $p_linux)
+                let content = (format_template $tpl_sh $targets_context | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path}}" $p_linux)
                 $content | save --force $"($dist)/install.sh"
                 print $"Generated ($dist)/install.sh"
             } else {
@@ -305,7 +353,7 @@ def run_publish [] {
         if "ps1" in $features {
             let tpl_ps1 = ".github/workflows/installer.template.ps1"
             if ($tpl_ps1 | path exists) {
-                let content = (open --raw $tpl_ps1 | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path-win}}" $p_win)
+                let content = (format_template $tpl_ps1 $targets_context | str replace --all "{{bin}}" $bin | str replace --all "{{version}}" $version | str replace --all "{{repository}}" $repo | str replace --all "{{path-win}}" $p_win)
                 $content | save --force $"($dist)/install.ps1"
                 print $"Generated ($dist)/install.ps1"
             } else {
@@ -402,7 +450,13 @@ def run_publish [] {
             try { ^sha256sum $arch_archive | split row ' ' | first } catch { "SKIP" }
         } else { "SKIP" }
 
-        let p_content = (open --raw $p_template 
+        let has_x86_64 = (try { $config.targets | get "x86_64-unknown-linux-gnu" } catch { false })
+        let has_aarch64 = (try { $config.targets | get "aarch64-unknown-linux-gnu" } catch { false })
+        let p_context = {
+            "arch.x86_64": $has_x86_64,
+            "arch.aarch64": $has_aarch64
+        }
+        let p_content = (format_template $p_template $p_context 
             | str replace --all "{{bin}}" $bin_name 
             | str replace --all "{{version}}" $bin_version 
             | str replace --all "{{repository}}" $repo
@@ -569,46 +623,7 @@ def run_publish [] {
             "brew.enable": (try { $config.brew.enable } catch { false })
         }
 
-        let eval_condition = {|cond: string|
-            if ($cond | str starts-with "!") {
-                let c = ($cond | str substring 1..)
-                let val = (try { $context | get $c } catch { false })
-                not $val
-            } else {
-                (try { $context | get $cond } catch { false })
-            }
-        }
-
-        mut filtered_lines = []
-        mut skip_stack = []
-
-        for line in (open --raw $r_template | lines) {
-            let start_match = ($line | parse -r '^\[IF\s+(?<condition>[a-zA-Z0-9._!]+)\]\s*$')
-            if ($start_match | is-not-empty) {
-                let cond = $start_match.0.condition
-                let is_cond_true = (do $eval_condition $cond)
-                let parent_skip = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
-                $skip_stack = ($skip_stack | append ($parent_skip or not $is_cond_true))
-                continue
-            }
-            
-            let end_match = ($line | parse -r '^\[/IF\]\s*$')
-            if ($end_match | is-not-empty) {
-                if not ($skip_stack | is-empty) {
-                    $skip_stack = ($skip_stack | drop 1)
-                }
-                continue
-            }
-            
-            let skip_line = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
-            
-            if not $skip_line {
-                $filtered_lines = ($filtered_lines | append $line)
-            }
-        }
-
-        let r_content = ($filtered_lines 
-            | str join (char nl)
+        let r_content = (format_template $r_template $context
             | str replace --all "{{bin}}" $bin_name
             | str replace --all "{{version}}" $bin_version
             | str replace --all "{{repo_path}}" $repo_path

@@ -14,13 +14,19 @@ if (-not (Test-Path -Path $ExpandedPath)) {
 }
 
 $ARCH = $env:PROCESSOR_ARCHITECTURE
-if ($ARCH -eq "AMD64") {
-    $TARGET = "x86_64-pc-windows-msvc"
-} elseif ($ARCH -eq "ARM64") {
-    $TARGET = "aarch64-pc-windows-msvc"
-} elseif ($ARCH -eq "x86") {
-    $TARGET = "i686-pc-windows-msvc"
-} else {
+$TARGET = ""
+
+[IF target.x86_64-pc-windows-msvc]
+if ($ARCH -eq "AMD64") { $TARGET = "x86_64-pc-windows-msvc" }
+[/IF]
+[IF target.aarch64-pc-windows-msvc]
+if ($ARCH -eq "ARM64") { $TARGET = "aarch64-pc-windows-msvc" }
+[/IF]
+[IF target.i686-pc-windows-msvc]
+if ($ARCH -eq "x86") { $TARGET = "i686-pc-windows-msvc" }
+[/IF]
+
+if ([string]::IsNullOrEmpty($TARGET)) {
     Write-Host "Unsupported architecture: $ARCH" -ForegroundColor Red
     exit 1
 }

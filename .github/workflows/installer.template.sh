@@ -15,30 +15,34 @@ mkdir -p "$_PATH"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
+TARGET=""
 if [ "$OS" = "linux" ]; then
-    if [ "$ARCH" = "x86_64" ]; then
-        TARGET="x86_64-unknown-linux-gnu"
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-        TARGET="aarch64-unknown-linux-gnu"
-    elif [ "$ARCH" = "i686" ]; then
-        TARGET="i686-unknown-linux-gnu"
-    elif [ "$ARCH" = "s390x" ]; then
-        TARGET="s390x-unknown-linux-gnu"
-    else
-        echo "Unsupported architecture: $ARCH"
-        exit 1
-    fi
+    [IF target.x86_64-unknown-linux-gnu]
+    if [ "$ARCH" = "x86_64" ]; then TARGET="x86_64-unknown-linux-gnu"; fi
+    [/IF]
+    [IF target.aarch64-unknown-linux-gnu]
+    if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then TARGET="aarch64-unknown-linux-gnu"; fi
+    [/IF]
+    [IF target.i686-unknown-linux-gnu]
+    if [ "$ARCH" = "i686" ]; then TARGET="i686-unknown-linux-gnu"; fi
+    [/IF]
+    [IF target.s390x-unknown-linux-gnu]
+    if [ "$ARCH" = "s390x" ]; then TARGET="s390x-unknown-linux-gnu"; fi
+    [/IF]
 elif [ "$OS" = "darwin" ]; then
-    if [ "$ARCH" = "x86_64" ]; then
-        TARGET="x86_64-apple-darwin"
-    elif [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-        TARGET="aarch64-apple-darwin"
-    else
-        echo "Unsupported architecture: $ARCH"
-        exit 1
-    fi
+    [IF target.x86_64-apple-darwin]
+    if [ "$ARCH" = "x86_64" ]; then TARGET="x86_64-apple-darwin"; fi
+    [/IF]
+    [IF target.aarch64-apple-darwin]
+    if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then TARGET="aarch64-apple-darwin"; fi
+    [/IF]
 else
     echo "Unsupported OS: $OS"
+    exit 1
+fi
+
+if [ -z "$TARGET" ]; then
+    echo "Unsupported architecture: $ARCH"
     exit 1
 fi
 
