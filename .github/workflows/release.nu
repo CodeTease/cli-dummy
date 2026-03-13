@@ -255,12 +255,22 @@ def run_build [] {
         }
 
         # Optional: Windows MSI packaging
-        # Check if wix/ folder exists in source directory
-        let wix_folder_exists = ($src | path join 'wix' | path exists)
-        if $wix_folder_exists {
+        let msi_enabled = (try { $config.msi.enable } catch { false })
+        let tpl_wxs = $"($env.GITHUB_WORKSPACE)/.github/workflows/main.template.wxs"
+        let tpl_wixproj = $"($env.GITHUB_WORKSPACE)/.github/workflows/build.template.wixproj"
+
+        if $msi_enabled and ($tpl_wxs | path exists) and ($tpl_wixproj | path exists) {
             let can_build_msi = [dotnet wix] | all { (which $in | length) > 0 }
-            if $can_build_msi and (wix --version | split row . | first | into int) >= 6 {
+            if $can_build_msi and (try { wix --version | split row . | first | into int } catch { 0 }) >= 6 {
                 print $"(char nl)Building MSI package..."
+                let wix_dir = $"($src)/wix"
+                if not ($wix_dir | path exists) { mkdir $wix_dir }
+
+                let maintainer = (try { $config.metadata.maintainer } catch { "Maintainer" })
+                let wxs_content = (open --raw $tpl_wxs | str replace --all "{{maintainer}}" $maintainer)
+                $wxs_content | save --force $"($wix_dir)/main.wxs"
+                cp $tpl_wixproj $"($wix_dir)/build.wixproj"
+
                 cd $src; cd wix; mkdir $bin
                 # Copy only base assets to the target folder, excluding any existing archives or installers
                 ls $dist | where type == file | where ($it.name | path parse | get extension | $in not-in ['msi', 'zip']) | each {|it| cp -r $it.name $"($bin)/" }

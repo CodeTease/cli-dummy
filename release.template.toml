@@ -47,6 +47,10 @@ deb = "ubuntu/noble"                              # Target distribution for Debi
 rpm = "el/9"                                      # Target distribution for RPM packages
 apk = "alpine/any-version"                        # Target distribution for Alpine packages
 
+# MSI configuration (Windows Installer)
+[msi]
+enable = true                                     # Enable generation of MSI installer
+
 # Quick-installer script generation
 [installer]
 enable = true                                     # Enable generation of install.sh and install.ps1

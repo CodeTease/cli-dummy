@@ -36,6 +36,9 @@ deb = "ubuntu/noble"
 rpm = "el/9"
 apk = "alpine/any-version"
 
+[msi]
+enable = true
+
 [installer]
 enable = true
 features = ["sh", "ps1"]
