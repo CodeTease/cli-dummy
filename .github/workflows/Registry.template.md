@@ -76,3 +76,13 @@ docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}-debian-slim
 # OR
 docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-debian-slim
 ```
+
+### Dockerfile
+To refer image after pulling, use this in your `Dockerfile`:
+```dockerfile
+# Alpine
+FROM ghcr.io/{{github_org}}/{{bin}}:{{version}}
+
+# Debian Slim
+FROM ghcr.io/{{github_org}}/{{bin}}:{{version}}-debian-slim
+```
