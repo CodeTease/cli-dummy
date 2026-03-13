@@ -701,8 +701,10 @@ def run_publish [] {
 
         if $has_cloudsmith {
             if ($env.CLOUDSMITH_API_KEY? | is-not-empty) {
+                # Cloudsmith user is not always the workspace name
+                let cloudsmith_docker_username = ($config.docker.cloudsmith_docker_username | default "")
                 print "Logging into docker.cloudsmith.io..."
-                $env.CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u "codetease" --password-stdin
+                $env.CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u $cloudsmith_docker_username --password-stdin
             } else {
                  print "Warning: CLOUDSMITH_API_KEY is missing. Cloudsmith login skipped."
             }

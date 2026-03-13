@@ -65,6 +65,7 @@ image_name = "your-name/your-repo"                # Docker image name (without t
 github_org = "your-name"                          # GitHub organization for GHCR
 templates = ["alpine", "debian-slim"]             # Dockerfile templates to use
 registries = ["ghcr", "cloudsmith"]               # Registries to push to (ghcr, cloudsmith)
+cloudsmith_docker_username = "your-name"           # Cloudsmith Docker username
 
 # Compilation targets
 # Set a target to true to enable cross-compilation for that platform
