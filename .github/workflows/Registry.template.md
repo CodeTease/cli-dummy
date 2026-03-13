@@ -56,3 +56,23 @@ Install-Package {{bin}} -Source '{{repo_path}}'
 # Or
 Install-Module {{bin}} -Repository '{{repo_path}}'
 ```
+
+## Docker
+
+Multi-architecture Docker images are available. You can pull the images from GitHub Container Registry (GHCR) or Cloudsmith.
+
+### Alpine (Default)
+Minimal size image based on Alpine Linux.
+```bash
+docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}
+# OR
+docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}
+```
+
+### Debian Slim
+Compatible image based on Debian Bookworm Slim.
+```bash
+docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}-debian-slim
+# OR
+docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-debian-slim
+```

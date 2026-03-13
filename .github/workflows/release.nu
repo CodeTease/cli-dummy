@@ -542,15 +542,141 @@ def run_publish [] {
         let bin_version = (try { $config.metadata.version } catch { "" })
         let repo_path = (try { $config.cloudsmith.repo } catch { "" })
         let repo_url = (try { $config.metadata.repository } catch { "" })
+        let github_org = (try { $config.docker.github_org } catch {
+            ($env.GITHUB_REPOSITORY? | default "codetease/cli-dummy" | split row "/" | first | str downcase)
+        })
 
         let r_content = (open --raw $r_template
             | str replace --all "{{bin}}" $bin_name
             | str replace --all "{{version}}" $bin_version
             | str replace --all "{{repo_path}}" $repo_path
-            | str replace --all "{{repository}}" $repo_url)
+            | str replace --all "{{repository}}" $repo_url
+            | str replace --all "{{github_org}}" $github_org)
         
         $r_content | save --force $"($dist)/($docs_path)"
         print $"Generated ($dist)/($docs_path)"
+    }
+
+    # 0.98 Build and Push Docker Images
+    let docker_enabled = (try { $config.docker.enable } catch { false })
+    let registries = (try { $config.docker.registries } catch { [] })
+    let templates = (try { $config.docker.templates } catch { [] })
+    mut docker_release_notes = []
+
+    if $docker_enabled and ($templates | is-not-empty) and ($registries | is-not-empty) {
+        print $"(char nl)[Docker] Building and Pushing Images..."
+        hr-line
+
+        let bin_name = (try { $config.metadata.bin } catch { "" })
+        let bin_version = (try { $config.metadata.version } catch { "" })
+        let image_name = (try { $config.docker.image_name } catch { $bin_name })
+        
+        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+        let clean_version = ($tag_name | str replace --regex '^v' '')
+
+        let has_ghcr = "ghcr" in $registries
+        let has_cloudsmith = "cloudsmith" in $registries
+
+        if $has_ghcr {
+            if ($env.GITHUB_TOKEN? | is-not-empty) and ($env.GITHUB_ACTOR? | is-not-empty) {
+                print "Logging into ghcr.io..."
+                print $env.GITHUB_TOKEN | docker login ghcr.io -u $env.GITHUB_ACTOR --password-stdin
+            } else {
+                print "Warning: GITHUB_TOKEN or GITHUB_ACTOR is missing. GHCR login skipped."
+            }
+        }
+
+        if $has_cloudsmith {
+            if ($env.CLOUDSMITH_API_KEY? | is-not-empty) {
+                print "Logging into docker.cloudsmith.io..."
+                print $env.CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u "codetease" --password-stdin
+            } else {
+                 print "Warning: CLOUDSMITH_API_KEY is missing. Cloudsmith login skipped."
+            }
+        }
+
+        $docker_release_notes = ($docker_release_notes | append "### 🐳 Docker Images")
+        $docker_release_notes = ($docker_release_notes | append "")
+        $docker_release_notes = ($docker_release_notes | append "Multi-architecture Docker images are available in the following registries:")
+        $docker_release_notes = ($docker_release_notes | append "")
+
+        for tpl in $templates {
+            print $"Preparing context for ($tpl)..."
+            let target_dir = $"($dist)/docker_build_($tpl)"
+            mkdir $"($target_dir)/amd64"
+            mkdir $"($target_dir)/arm64"
+            
+            let is_alpine = $tpl == "alpine"
+            let suffix = if $is_alpine { "musl" } else { "gnu" }
+            
+            let linux_amd64_tar = $"($dist)/($bin_name)-($bin_version)-x86_64-unknown-linux-($suffix).tar.gz"
+            let linux_arm64_tar = $"($dist)/($bin_name)-($bin_version)-aarch64-unknown-linux-($suffix).tar.gz"
+            
+            mut available_platforms = []
+            
+            if ($linux_amd64_tar | path exists) {
+                tar -xzf $linux_amd64_tar -C $"($target_dir)/amd64"
+                let extracted_dir = $"($bin_name)-($bin_version)-x86_64-unknown-linux-($suffix)"
+                mv $"($target_dir)/amd64/($extracted_dir)/($bin_name)" $"($target_dir)/amd64/($bin_name)"
+                $available_platforms = ($available_platforms | append "linux/amd64")
+            }
+            if ($linux_arm64_tar | path exists) {
+                tar -xzf $linux_arm64_tar -C $"($target_dir)/arm64"
+                let extracted_dir = $"($bin_name)-($bin_version)-aarch64-unknown-linux-($suffix)"
+                mv $"($target_dir)/arm64/($extracted_dir)/($bin_name)" $"($target_dir)/arm64/($bin_name)"
+                $available_platforms = ($available_platforms | append "linux/arm64")
+            }
+            
+            if ($available_platforms | is-empty) {
+                print "Warning: No linux archives found to build Docker image."
+                continue
+            }
+            
+            let platforms = ($available_platforms | str join ",")
+            
+            let d_template = $".github/workflows/Dockerfile.($tpl).template"
+            let d_content = (open --raw $d_template | str replace --all "{{bin}}" $bin_name | str replace --all "{{version}}" $bin_version)
+            let d_file = $"($target_dir)/Dockerfile"
+            $d_content | save --force $d_file
+            
+            mut build_args = ["buildx" "build" "--push" "--platform" $platforms "-f" $d_file]
+            
+            $docker_release_notes = ($docker_release_notes | append $"**Variant:** `($tpl)`")
+            $docker_release_notes = ($docker_release_notes | append "```bash")
+
+            for reg in $registries {
+                let full_image = if $reg == "ghcr" {
+                    let repo_owner = ($env.GITHUB_REPOSITORY? | default "codetease/cli-dummy" | split row "/" | first | str downcase)
+                    $"ghcr.io/($repo_owner)/($image_name)"
+                } else if $reg == "cloudsmith" {
+                    let repo_path = (try { $config.cloudsmith.repo } catch { "codetease/tools" })
+                    $"docker.cloudsmith.io/($repo_path)/($image_name)"
+                } else {
+                    $image_name
+                }
+                
+                let tag_ver = if $tpl == "alpine" { $clean_version } else { $"($clean_version)-($tpl)" }
+                let tag_latest = if $tpl == "alpine" { "latest" } else { $tpl }
+                
+                $build_args = ($build_args | append ["-t" $"($full_image):($tag_ver)"])
+                $build_args = ($build_args | append ["-t" $"($full_image):($tag_latest)"])
+
+                $docker_release_notes = ($docker_release_notes | append $"docker pull ($full_image):($tag_ver)")
+            }
+            
+            $docker_release_notes = ($docker_release_notes | append "```")
+            $docker_release_notes = ($docker_release_notes | append "")
+
+            $build_args = ($build_args | append $target_dir)
+            
+            print $"Running docker ($build_args | str join ' ')"
+            try {
+                ^docker ...$build_args
+                print $"Successfully built and pushed ($tpl) image."
+            } catch {
+                print $"Error: Docker build/push failed for ($tpl)"
+            }
+        }
     }
 
     # 1. GitHub Release
@@ -621,6 +747,10 @@ def run_publish [] {
         $notes_lines = ($notes_lines | append "")
         $notes_lines = ($notes_lines | append $rows)
         $notes_lines = ($notes_lines | append "")
+
+        if ($docker_release_notes | length) > 0 {
+            $notes_lines = ($notes_lines | append $docker_release_notes)
+        }
 
         if $installer_enabled {
             let github_repo = ($env.GITHUB_REPOSITORY? | default "OWNER/REPO")

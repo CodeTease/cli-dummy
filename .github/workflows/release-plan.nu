@@ -117,6 +117,25 @@ if $use_nuget {
     print "Validated NuGet configuration."
 }
 
+# Validate Docker configuration
+let use_docker = (try { $config.docker.enable } catch { false })
+if $use_docker {
+    let templates = (try { $config.docker.templates } catch { [] })
+    if ($templates | is-empty) {
+        print "Error: 'docker.templates' is missing or empty"
+        exit 1
+    }
+    
+    for tpl in $templates {
+        let tpl_file = $".github/workflows/Dockerfile.($tpl).template"
+        if not ($tpl_file | path exists) {
+            print $"Error: ($tpl_file) missing"
+            exit 1
+        }
+    }
+    print "Validated Docker configuration."
+}
+
 # Load Targets Matrix mapping
 let all_targets = [
     { target: "aarch64-apple-darwin", os: "macos-latest", display_name: "macOS ARM64" },

@@ -26,6 +26,7 @@ defaults:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   plan:
@@ -148,12 +149,19 @@ jobs:
           sudo apt update
           sudo apt install nfpm -y
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Publish Release Assets & Cloudsmith
         run: nu .github/workflows/release.nu publish
         env:
           REF: ${{ github.ref }}
           CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
           MATRIX: ${{ needs.plan.outputs.matrix }}
 
       - name: Upload Registry Manifests

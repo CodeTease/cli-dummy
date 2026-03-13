@@ -4,10 +4,10 @@ bin = "template"                                  # Name of the binary to be pro
 version = "0.1.0"                                  # Current version of the project
 repository = "https://github.com/your-name/your-repo" # Project's GitHub repository URL
 
-# Optional metadata for manifests (Brew, Scoop, NuGet, AUR, etc.)
+# Optional metadata for manifests (Brew, Scoop, NuGet, etc.)
 license = "MIT"                                   # Project license (e.g., MIT, Apache-2.0)
 homepage = "https://github.com/your-name/your-repo" # Project's homepage or documentation
-maintainer = "your-name"                           # Maintainer handle (used in AUR/NuGet)
+maintainer = "your-name"                           # Maintainer handle (used in NuGet)
 description = "Something about your tool"          # Short description of the project
 
 # nFPM configuration for building Linux packages (.deb, .rpm, .apk)
@@ -22,7 +22,6 @@ enable = true                                     # Enable generation of PKGBUIL
 [cloudsmith]
 enable = true                                     # Enable publishing packages to Cloudsmith
 repo = "your-name/your-repo"                      # Cloudsmith repository path (owner/repo)
-docs_path = "REGISTRY.md"                         # The output filename for registry integration instructions
 
 # Homebrew configuration
 [brew]
@@ -54,6 +53,13 @@ enable = true                                     # Enable generation of install
 features = ["sh", "ps1"]                          # Which installer scripts to generate
 path = "~/.local/bin"                             # Default installation path for Linux/macOS
 path-win = "C:/bin/cli-dummy"                     # Default installation path for Windows
+
+[docker]
+enable = true                                     # Enable Docker image builds
+image_name = "your-name/your-repo"                # Docker image name (without tag)
+github_org = "your-name"                          # GitHub organization for GHCR
+templates = ["alpine", "debian-slim"]             # Dockerfile templates to use
+registries = ["ghcr", "cloudsmith"]               # Registries to push to (ghcr, cloudsmith)
 
 # Compilation targets
 # Set a target to true to enable cross-compilation for that platform

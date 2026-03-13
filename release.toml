@@ -18,7 +18,6 @@ enable = true
 [cloudsmith]
 enable = true
 repo = "codetease/tools"
-docs_path = "REGISTRY.md"
 
 [brew]
 enable = true
@@ -42,6 +41,13 @@ enable = true
 features = ["sh", "ps1"]
 path = "~/.local/bin"
 path-win = "C:/bin"
+
+[docker]
+enable = true
+image_name = "codetease/cli-dummy"
+github_org = "codetease"
+templates = ["alpine", "debian-slim"]
+registries = ["ghcr", "cloudsmith"]
 
 [targets]
 "aarch64-apple-darwin" = true
