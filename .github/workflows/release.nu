@@ -265,10 +265,20 @@ def run_build [] {
                 # Copy only base assets to the target folder, excluding any existing archives or installers
                 glob $"($dist)/*" | where ($it | path parse | get extension | $in not-in ['msi', 'zip']) | each {|it| cp -r $it $"($bin)/" }
 
-                let arch = if $nu.os-info.arch =~ 'x86_64' { 'x64' } else { 'arm64' }
-                ./($bin)/($bin).exe -c $"PROJECT_NAME=($bin) PROJECT_VERSION=($version) dotnet build -c Release -p:Platform=($arch)"
+                # Calculate WiX architecture
+                let arch = match $target {
+                    'x86_64-pc-windows-msvc' | 'x86_64-pc-windows-gnu' => 'x64'
+                    'i686-pc-windows-msvc' | 'i686-pc-windows-gnu'  => 'x86'
+                    'aarch64-pc-windows-msvc' => 'arm64'
+                    _ => 'x64'
+                }
 
-                let wix_msi   = (glob **/*.msi | where $it =~ bin | get 0)
+                # Fix execution of dotnet build avoiding dummy executable copy-paste
+                with-env { PROJECT_NAME: $bin, PROJECT_VERSION: $version } {
+                    dotnet build -c Release $"-p:Platform=($arch)"
+                }
+
+                let wix_msi   = (glob **/*.msi | where $it =~ $bin | get 0)
                 let final_msi = $"($dist)/($release_name).msi"
                 mv $wix_msi $final_msi
                 echo $"msi=($final_msi | str replace --all '\' '/')(char nl)" o>> $env.GITHUB_OUTPUT
