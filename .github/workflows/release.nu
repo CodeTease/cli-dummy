@@ -263,7 +263,7 @@ def run_build [] {
                 print $"(char nl)Building MSI package..."
                 cd $src; cd wix; mkdir $bin
                 # Copy only base assets to the target folder, excluding any existing archives or installers
-                glob $"($dist)/*" | where ($it | path parse | get extension | $in not-in ['msi', 'zip']) | each {|it| cp -r $it $"($bin)/" }
+                ls $dist | where type == file | where ($it.name | path parse | get extension | $in not-in ['msi', 'zip']) | each {|it| cp -r $it.name $"($bin)/" }
 
                 # Calculate WiX architecture
                 let arch = match $target {
