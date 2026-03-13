@@ -693,7 +693,7 @@ def run_publish [] {
         if $has_ghcr {
             if ($env.GITHUB_TOKEN? | is-not-empty) and ($env.GITHUB_ACTOR? | is-not-empty) {
                 print "Logging into ghcr.io..."
-                print $env.GITHUB_TOKEN | docker login ghcr.io -u $env.GITHUB_ACTOR --password-stdin
+                $env.GITHUB_TOKEN | docker login ghcr.io -u $env.GITHUB_ACTOR --password-stdin
             } else {
                 print "Warning: GITHUB_TOKEN or GITHUB_ACTOR is missing. GHCR login skipped."
             }
@@ -702,7 +702,7 @@ def run_publish [] {
         if $has_cloudsmith {
             if ($env.CLOUDSMITH_API_KEY? | is-not-empty) {
                 print "Logging into docker.cloudsmith.io..."
-                print $env.CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u "codetease" --password-stdin
+                $env.CLOUDSMITH_API_KEY | docker login docker.cloudsmith.io -u "codetease" --password-stdin
             } else {
                  print "Warning: CLOUDSMITH_API_KEY is missing. Cloudsmith login skipped."
             }

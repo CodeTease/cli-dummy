@@ -50,7 +50,8 @@ path-win = "C:/bin"
 enable = true
 image_name = "codetease/cli-dummy"
 github_org = "codetease"
-templates = ["alpine", "debian-slim"]
+# Only Alpine for debug
+templates = ["alpine"]
 registries = ["ghcr", "cloudsmith"]
 
 [targets]
