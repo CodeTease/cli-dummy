@@ -83,7 +83,9 @@ jobs:
         let config_file = "release.toml"
         let config = (open $config_file)
         let toolchain = ($config.metadata.toolchain)
-        echo $"[toolchain]\nchannel = ($toolchain)\ntargets = [${{matrix.target}}]" | save rust-toolchain.toml
+        echo "[toolchain]" | save --force rust-toolchain.toml
+        echo $"\nchannel = "($toolchain)"" | save --append rust-toolchain.toml
+        echo $"\ntargets = ["${{matrix.target}}"]" | save --append rust-toolchain.toml
       shell: nu {0}
 
     - name: Setup Rust toolchain
