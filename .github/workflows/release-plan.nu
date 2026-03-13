@@ -117,6 +117,20 @@ if $use_nuget {
     print "Validated NuGet configuration."
 }
 
+# Validate MSI configuration
+let use_msi = (try { $config.msi.enable } catch { false })
+if $use_msi {
+    if not (".github/workflows/main.template.wxs" | path exists) {
+        print "Error: .github/workflows/main.template.wxs missing"
+        exit 1
+    }
+    if not (".github/workflows/build.template.wixproj" | path exists) {
+        print "Error: .github/workflows/build.template.wixproj missing"
+        exit 1
+    }
+    print "Validated MSI configuration."
+}
+
 # Validate Docker configuration
 let use_docker = (try { $config.docker.enable } catch { false })
 if $use_docker {
