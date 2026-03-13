@@ -274,7 +274,7 @@ def run_build [] {
                 }
 
                 let _hash = ($bin | hash md5)
-                let upgrade_code = $"({$_hash | str substring 0..7})-({$_hash | str substring 8..11})-({$_hash | str substring 12..15})-({$_hash | str substring 16..19})-({$_hash | str substring 20..31})"
+                let upgrade_code = $"($_hash | str substring 0..7)-($_hash | str substring 8..11)-($_hash | str substring 12..15)-($_hash | str substring 16..19)-($_hash | str substring 20..31)"
 
                 # Fix execution of dotnet build avoiding dummy executable copy-paste
                 with-env { PROJECT_NAME: $bin, PROJECT_VERSION: $version, UPGRADE_CODE: $upgrade_code } {
