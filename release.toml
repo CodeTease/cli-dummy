@@ -50,8 +50,7 @@ path-win = "C:/bin"
 enable = true
 image_name = "codetease/cli-dummy"
 github_org = "codetease"
-# Only Alpine for debug
-templates = ["alpine"]
+templates = ["alpine", "debian-slim"]
 registries = ["ghcr", "cloudsmith"]
 # Service name, so it's quite different 
 cloudsmith_docker_username = "codetease-imos"
