@@ -8,6 +8,7 @@
     </DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="main.wxl" />
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.0" />
   </ItemGroup>
 </Project>

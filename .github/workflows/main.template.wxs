@@ -19,12 +19,18 @@
       <Directory Id="INSTALLFOLDER" Name="$(var.PROJECT_NAME)" />
     </StandardDirectory>
 
+    <!-- License Agreement in RTF format -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.PROJECT_NAME)\LICENSE.rtf" />
+
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component>
         <File Source="$(var.PROJECT_NAME)\$(var.PROJECT_NAME).exe" />
       </Component>
       <Component>
         <File Source="$(var.PROJECT_NAME)\LICENSE" />
+      </Component>
+      <Component>
+        <File Source="$(var.PROJECT_NAME)\LICENSE.rtf" />
       </Component>
     </ComponentGroup>
 

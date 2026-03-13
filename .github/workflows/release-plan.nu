@@ -128,6 +128,10 @@ if $use_msi {
         print "Error: .github/workflows/build.template.wixproj missing"
         exit 1
     }
+    if not (".github/workflows/main.template.wxl" | path exists) {
+        print "Error: .github/workflows/main.template.wxl missing"
+        exit 1
+    }
     print "Validated MSI configuration."
 }
 
