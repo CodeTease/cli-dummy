@@ -53,7 +53,8 @@ github_org = "codetease"
 # Only Alpine for debug
 templates = ["alpine"]
 registries = ["ghcr", "cloudsmith"]
-cloudsmith_docker_username = "ngo-long"
+# Service name, so it's quite different 
+cloudsmith_docker_username = "codetease-imos"
 
 [targets]
 "aarch64-apple-darwin" = true
