@@ -551,6 +551,10 @@ def run_publish [] {
         let has_ghcr = "ghcr" in $registries
         let has_cloudsmith = "cloudsmith" in $registries
 
+        let brew_tap = (try { $config.brew.tap } catch { "" })
+        let scoop_bucket = (try { $config.scoop.bucket } catch { "" })
+        let scoop_bucket_name = if ($scoop_bucket | is-empty) { "" } else { $scoop_bucket | split row "/" | last }
+
         let context = {
             "cloudsmith.enable": $cloudsmith_enabled,
             "docker.enable": $has_docker,
@@ -617,7 +621,10 @@ def run_publish [] {
             | str replace --all "{{version}}" $bin_version
             | str replace --all "{{repo_path}}" $repo_path
             | str replace --all "{{repository}}" $repo_url
-            | str replace --all "{{github_org}}" $github_org)
+            | str replace --all "{{github_org}}" $github_org
+            | str replace --all "{{brew_tap}}" $brew_tap
+            | str replace --all "{{scoop_bucket}}" $scoop_bucket
+            | str replace --all "{{scoop_bucket_name}}" $scoop_bucket_name)
         
         $r_content | save --force $"($dist)/($docs_path)"
         print $"Generated ($dist)/($docs_path)"

@@ -34,6 +34,13 @@
 ?IF_archlinux.enable?makepkg -si
 ?IF_archlinux.enable?```
 
+?IF_brew.enable?## macOS & Linux (Homebrew)
+?IF_brew.enable?You can install the package using our custom Homebrew tap:
+?IF_brew.enable?```bash
+?IF_brew.enable?brew tap {{brew_tap}}
+?IF_brew.enable?brew install {{bin}}
+?IF_brew.enable?```
+
 ?IF_nuget.enable?## Windows (NuGet)
 ?IF_nuget.enable?To install the package via NuGet in PowerShell, register the Cloudsmith feed and install it:
 ?IF_nuget.enable?```powershell
@@ -56,6 +63,13 @@
 ?IF_nuget.enable?# Or
 ?IF_nuget.enable?Install-Module {{bin}} -Repository '{{repo_path}}'
 ?IF_nuget.enable?```
+
+?IF_scoop.enable?## Windows (Scoop)
+?IF_scoop.enable?You can install the package using our custom Scoop bucket:
+?IF_scoop.enable?```powershell
+?IF_scoop.enable?scoop bucket add {{scoop_bucket_name}} https://github.com/{{scoop_bucket}}
+?IF_scoop.enable?scoop install {{scoop_bucket_name}}/{{bin}}
+?IF_scoop.enable?```
 
 ?IF_docker.enable?## Docker
 ?IF_docker.enable?
