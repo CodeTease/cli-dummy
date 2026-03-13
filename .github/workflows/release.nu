@@ -580,38 +580,30 @@ def run_publish [] {
         }
 
         mut filtered_lines = []
+        mut skip_stack = []
+
         for line in (open --raw $r_template | lines) {
-            mut skip_line = false
-            mut current_line = $line
-
-            let parsed_if = ($current_line | parse -r '^\?IF_(?<condition>[a-zA-Z0-9._!]+)\?(?<rest>.*)')
-            if ($parsed_if | is-not-empty) {
-                let cond = $parsed_if.0.condition
-                let rest = $parsed_if.0.rest
-                
-                if (do $eval_condition $cond) {
-                    $current_line = $rest
-                } else {
-                    $skip_line = true
-                }
-            }
-
-            if not $skip_line {
-                let parsed_rewrite = ($current_line | parse -r '^!!REWRITE_(?<condition>[a-zA-Z0-9._!]+)!!(?<rest>.*)')
-                if ($parsed_rewrite | is-not-empty) {
-                    let cond = $parsed_rewrite.0.condition
-                    let rest = $parsed_rewrite.0.rest
-                    
-                    if (do $eval_condition $cond) {
-                        $current_line = $rest
-                    } else {
-                        $skip_line = true
-                    }
-                }
+            let start_match = ($line | parse -r '^\[IF\s+(?<condition>[a-zA-Z0-9._!]+)\]\s*$')
+            if ($start_match | is-not-empty) {
+                let cond = $start_match.0.condition
+                let is_cond_true = (do $eval_condition $cond)
+                let parent_skip = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
+                $skip_stack = ($skip_stack | append ($parent_skip or not $is_cond_true))
+                continue
             }
             
+            let end_match = ($line | parse -r '^\[/IF\]\s*$')
+            if ($end_match | is-not-empty) {
+                if not ($skip_stack | is-empty) {
+                    $skip_stack = ($skip_stack | drop 1)
+                }
+                continue
+            }
+            
+            let skip_line = if ($skip_stack | is-empty) { false } else { $skip_stack | last }
+            
             if not $skip_line {
-                $filtered_lines = ($filtered_lines | append $current_line)
+                $filtered_lines = ($filtered_lines | append $line)
             }
         }
 
