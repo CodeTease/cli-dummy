@@ -546,7 +546,73 @@ def run_publish [] {
             ($env.GITHUB_REPOSITORY? | default "codetease/cli-dummy" | split row "/" | first | str downcase)
         })
 
-        let r_content = (open --raw $r_template
+        let has_docker = (try { $config.docker.enable } catch { false })
+        let registries = (try { $config.docker.registries } catch { [] })
+        let has_ghcr = "ghcr" in $registries
+        let has_cloudsmith = "cloudsmith" in $registries
+
+        let context = {
+            "cloudsmith.enable": $cloudsmith_enabled,
+            "docker.enable": $has_docker,
+            "ghcr.enable": ($has_docker and $has_ghcr),
+            "docker.cloudsmith.enable": ($has_docker and $has_cloudsmith),
+            "ghcr_only": ($has_docker and $has_ghcr and not $has_cloudsmith),
+            "cloudsmith_only": ($has_docker and $has_cloudsmith and not $has_ghcr),
+            "ghcr_and_cloudsmith": ($has_docker and $has_ghcr and $has_cloudsmith),
+            "nuget.enable": (try { $config.nuget.enable } catch { false }),
+            "archlinux.enable": (try { $config.archlinux.enable } catch { false }),
+            "scoop.enable": (try { $config.scoop.enable } catch { false }),
+            "brew.enable": (try { $config.brew.enable } catch { false })
+        }
+
+        let eval_condition = {|cond: string|
+            if ($cond | str starts-with "!") {
+                let c = ($cond | str substring 1..)
+                let val = (try { $context | get $c } catch { false })
+                not $val
+            } else {
+                (try { $context | get $cond } catch { false })
+            }
+        }
+
+        mut filtered_lines = []
+        for line in (open --raw $r_template | lines) {
+            mut skip_line = false
+            mut current_line = $line
+
+            let parsed_if = ($current_line | parse -r '^\?IF_(?<condition>[a-zA-Z0-9._!]+)\?(?<rest>.*)')
+            if ($parsed_if | is-not-empty) {
+                let cond = $parsed_if.0.condition
+                let rest = $parsed_if.0.rest
+                
+                if (do $eval_condition $cond) {
+                    $current_line = $rest
+                } else {
+                    $skip_line = true
+                }
+            }
+
+            if not $skip_line {
+                let parsed_rewrite = ($current_line | parse -r '^!!REWRITE_(?<condition>[a-zA-Z0-9._!]+)!!(?<rest>.*)')
+                if ($parsed_rewrite | is-not-empty) {
+                    let cond = $parsed_rewrite.0.condition
+                    let rest = $parsed_rewrite.0.rest
+                    
+                    if (do $eval_condition $cond) {
+                        $current_line = $rest
+                    } else {
+                        $skip_line = true
+                    }
+                }
+            }
+            
+            if not $skip_line {
+                $filtered_lines = ($filtered_lines | append $current_line)
+            }
+        }
+
+        let r_content = ($filtered_lines 
+            | str join (char nl)
             | str replace --all "{{bin}}" $bin_name
             | str replace --all "{{version}}" $bin_version
             | str replace --all "{{repo_path}}" $repo_path
