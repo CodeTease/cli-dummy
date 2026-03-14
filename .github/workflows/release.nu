@@ -688,7 +688,16 @@ def run_publish [] {
                 if ($status | is-not-empty) {
                     print $"Committing changes for ($docs_path)..."
                     git commit -m $"update registry docs for v($bin_version)"
-                    git push
+                    
+                    # Fix: detached HEAD push by specifying target branch
+                    let target_branch = if $is_tag {
+                        # Default to the primary branch for tag-triggered releases
+                        (try { ^gh repo view --json defaultBranchRef --template '{{.defaultBranchRef.name}}' } catch { "main" })
+                    } else {
+                        ($env.GITHUB_REF_NAME? | default ($env.REF? | default "refs/heads/main" | split row "/" | last))
+                    }
+                    print $"[Git] Pushing changes to ($target_branch)..."
+                    git push origin $"HEAD:($target_branch)"
                     print "[Git] Successfully committed and pushed registry docs."
                 } else {
                     print "[Git] No changes in registry docs to commit."
