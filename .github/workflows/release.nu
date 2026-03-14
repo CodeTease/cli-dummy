@@ -788,8 +788,10 @@ def run_publish [] {
             try {
                 ^docker ...$build_args
                 print $"Successfully built and pushed ($tpl) image."
+                rm -rf $target_dir
             } catch {
                 print $"Error: Docker build/push failed for ($tpl)"
+                rm -rf $target_dir
             }
         }
     }
@@ -920,8 +922,8 @@ def run_publish [] {
             gh release edit $tag_name --notes-file $notes_file
         }
         
-        # Upload all assets in dist
-        let assets = (glob $"($dist)/*" | where {|f| not ($f | path basename | $in in ["RELEASE_NOTES.md", "PKGBUILD", ".SRCINFO"])})
+        # Upload all assets in dist (files only)
+        let assets = (ls $dist | where type == file | get name | where {|f| not ($f | path basename | $in in ["RELEASE_NOTES.md", "PKGBUILD", ".SRCINFO"])})
         if ($assets | is-not-empty) {
             gh release upload $tag_name ...$assets --clobber
         } else {
