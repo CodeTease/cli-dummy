@@ -1,21 +1,14 @@
 [package]
 name = "cli-dummy"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["CodeTease"]
 repository = "https://github.com/CodeTease/cli-dummy"
-# For Homebrew
 homepage = "https://github.com/CodeTease/cli-dummy"
 license = "MIT"
 description = "A dummy CLI tool"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0"
-clap = { version = "4.5", features = ["derive"] }
-reqwest = { version = "0.11", default-features = false, features = [
-    "rustls-tls",
-] }
-tokio = { version = "1", features = ["full"] }
 
 [profile.release]
 opt-level = "z"
