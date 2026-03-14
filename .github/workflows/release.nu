@@ -619,7 +619,7 @@ def run_publish [] {
 
     # 0.95 Generate Registry Info
     let cloudsmith_enabled = (try { $config.cloudsmith.enable } catch { false })
-    let docs_path = (try { $config.cloudsmith.docs_path } catch { "" })
+    let docs_path = (try { $config.cloudsmith.docs_path } catch { "REGISTRY.md" })
     let r_template = ".github/workflows/Registry.template.md"
     if $cloudsmith_enabled and $docs_path != "" and ($r_template | path exists) {
         print $"(char nl)[Registry] Generating Registry instructions..."
@@ -668,6 +668,34 @@ def run_publish [] {
         
         $r_content | save --force $"($dist)/($docs_path)"
         print $"Generated ($dist)/($docs_path)"
+
+        do {
+            let target_docs_path = $"($env.GITHUB_WORKSPACE)/($docs_path)"
+            let target_dir = ($target_docs_path | path dirname)
+            if not ($target_dir | path exists) { mkdir $target_dir }
+            
+            cp -f $"($dist)/($docs_path)" $target_docs_path
+            
+            print "Checking for changes in registry docs..."
+            cd $env.GITHUB_WORKSPACE
+            let actor = ($env.GITHUB_ACTOR? | default "github-actions[bot]")
+            try {
+                git config --local user.name $actor
+                git config --local user.email $"($actor)@users.noreply.github.com"
+                git add $docs_path
+                let status = (git status --porcelain $docs_path)
+                if ($status | is-not-empty) {
+                    print $"Committing changes for ($docs_path)..."
+                    git commit -m $"update registry docs for v($bin_version)"
+                    git push
+                    print "[Git] Successfully committed and pushed registry docs."
+                } else {
+                    print "[Git] No changes in registry docs to commit."
+                }
+            } catch {|err|
+                print $"::warning::Failed to commit or push registry docs: ($err.msg)"
+            }
+        }
     }
 
     # 0.98 Build and Push Docker Images
@@ -898,9 +926,9 @@ def run_publish [] {
             }
         }
 
-        if ($dist | path join "REGISTRY.md" | path exists) {
+        if ($dist | path join $docs_path | path exists) {
             let github_repo = ($env.GITHUB_REPOSITORY? | default "OWNER/REPO")
-            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please download [REGISTRY.md]\(https://github.com/($github_repo)/releases/download/($tag_name)/REGISTRY.md\) to view the instructions.")
+            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please download [($docs_path)]\(https://github.com/($github_repo)/releases/download/($tag_name)/($docs_path)\) to view the instructions.")
             $notes_lines = ($notes_lines | append "")
         }
 
