@@ -1,5 +1,7 @@
 # Package Registry Setup Guide
 
+`{{bin}}` version `{{version}}`
+
 [IF cloudsmith.enable]
 This project automatically publishes packages to [Cloudsmith](https://cloudsmith.io/~{{repo_path}}/). 
 To easily install `{{bin}}` and receive future updates naturally through your system's package manager, run the relevant setup script for your environment.
@@ -99,12 +101,16 @@ Minimal size image based on Alpine Linux.
 ```bash
 [IF ghcr.enable]
 docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}
+# OR
+docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}-alpine
 [/IF]
 [IF ghcr_and_cloudsmith]
-# OR
+# OR (Cloudsmith)
 [/IF]
 [IF docker.cloudsmith.enable]
 docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}
+# OR
+docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-alpine
 [/IF]
 ```
 
@@ -112,13 +118,13 @@ docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}
 Compatible image based on Debian Bookworm Slim.
 ```bash
 [IF ghcr.enable]
-docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}-debian-slim
+docker pull ghcr.io/{{github_org}}/{{bin}}:{{version}}-bookworm
 [/IF]
 [IF ghcr_and_cloudsmith]
 # OR
 [/IF]
 [IF docker.cloudsmith.enable]
-docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-debian-slim
+docker pull docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-bookworm
 [/IF]
 ```
 
@@ -135,10 +141,10 @@ FROM docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}
 
 # Debian Slim
 [IF ghcr.enable]
-FROM ghcr.io/{{github_org}}/{{bin}}:{{version}}-debian-slim
+FROM ghcr.io/{{github_org}}/{{bin}}:{{version}}-bookworm
 [/IF]
 [IF cloudsmith_only]
-FROM docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-debian-slim
+FROM docker.cloudsmith.io/{{repo_path}}/{{bin}}:{{version}}-bookworm
 [/IF]
 ```
 [/IF]
