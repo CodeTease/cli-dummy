@@ -1,6 +1,6 @@
 [package]
 name = "cli-dummy"
-version = "0.4.1"
+version = "0.4.5"
 authors = ["CodeTease"]
 repository = "https://github.com/CodeTease/cli-dummy"
 homepage = "https://github.com/CodeTease/cli-dummy"
