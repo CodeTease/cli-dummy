@@ -754,7 +754,7 @@ def run_publish [] {
             let d_file = $"($target_dir)/Dockerfile"
             $d_content | save --force $d_file
             
-            mut build_args = ["buildx" "build" "--push" "--platform" $platforms "-f" $d_file]
+            mut build_args = ["buildx" "build" "--push" "--platform" $platforms "-f" $d_file "--provenance=false" "--sbom=false"]
             
             $docker_release_notes = ($docker_release_notes | append $"**Variant:** `($tpl)`")
             $docker_release_notes = ($docker_release_notes | append "```bash")
