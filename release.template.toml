@@ -42,6 +42,11 @@ bucket = "your-name/scoop-bucket"                 # Your Scoop bucket repository
 enable = true                                     # Enable generation of NuGet packages (.nupkg)
 authors = "your-name"                             # Author(s) to be listed in the NuGet manifest
 
+# Crates configuration for Rust packages
+[crate]
+enable = true                                     # Enable publishing to crates.io and Cloudsmith
+registries = ["crates.io", "cloudsmith"]           # List of registries to publish to (crates.io, cloudsmith)
+
 # Distribution mappings for Cloudsmith
 # Maps package extensions to specific Cloudsmith distributions/versions
 [cloudsmith.targets]

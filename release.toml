@@ -33,6 +33,10 @@ bucket = "CodeTease/scoop-bucket"
 enable = true
 authors = "CodeTease"
 
+[crate]
+enable = true
+registries = ["crates.io", "cloudsmith"]
+
 [cloudsmith.targets]
 deb = "ubuntu/noble"
 rpm = "el/9"

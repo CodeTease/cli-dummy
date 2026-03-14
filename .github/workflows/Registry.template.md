@@ -83,6 +83,28 @@ scoop install {{scoop_bucket_name}}/{{bin}}
 ```
 [/IF]
 
+[IF crate.crates_io]
+## Rust (Cargo)
+You can install the package directly from `crates.io`:
+```bash
+cargo install {{bin}}
+```
+[/IF]
+
+[IF crate.cloudsmith]
+## Rust (Cargo - Cloudsmith)
+To install from the Cloudsmith registry:
+```bash
+# Add the registry to your Cargo configuration
+cat <<EOF >> ~/.cargo/config.toml
+[registries.cloudsmith]
+index = "sparse+https://cargo.cloudsmith.io/{{repo_path}}/"
+EOF
+
+cargo install {{bin}} --registry cloudsmith
+```
+[/IF]
+
 [IF docker.enable]
 ## Docker
 

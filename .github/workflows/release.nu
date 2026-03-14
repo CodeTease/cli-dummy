@@ -654,7 +654,10 @@ def run_publish [] {
             "nuget.enable": (try { $config.nuget.enable } catch { false }),
             "archlinux.enable": (try { $config.archlinux.enable } catch { false }),
             "scoop.enable": (try { $config.scoop.enable } catch { false }),
-            "brew.enable": (try { $config.brew.enable } catch { false })
+            "brew.enable": (try { $config.brew.enable } catch { false }),
+            "crate.enable": (try { $config.crate.enable } catch { false }),
+            "crate.crates_io": (try { $config.crate.enable and ("crates.io" in $config.crate.registries) } catch { false }),
+            "crate.cloudsmith": (try { $config.crate.enable and ("cloudsmith" in $config.crate.registries) } catch { false })
         }
 
         let r_content = (format_template $r_template $context
@@ -1020,5 +1023,50 @@ def run_publish [] {
         }
     } else {
         print "[Cloudsmith] Skipping publish: Conditions not met (disabled, missing API key, or not a tag)."
+    }
+
+    # 3. Crate Publish
+    let crate_enabled = (try { $config.crate.enable } catch { false })
+    let crate_registries = (try { $config.crate.registries } catch { [] })
+    if $crate_enabled and $is_tag {
+        print $"(char nl)[Crate] Publishing to registries: ($crate_registries | str join ', ')..."
+        hr-line
+        
+        # crates.io
+        if "crates.io" in $crate_registries {
+            if ($env.CARGO_REGISTRY_TOKEN? | is-not-empty) {
+                print "[Crate] Publishing to crates.io..."
+                try {
+                    cargo publish --token $env.CARGO_REGISTRY_TOKEN
+                    print "[Crate] Successfully published to crates.io"
+                } catch {
+                    print "::warning::[Crate] Failed to publish to crates.io"
+                }
+            } else {
+                print "[Crate] Skipping crates.io publish: CARGO_REGISTRY_TOKEN not found."
+            }
+        }
+
+        # cloudsmith
+        if "cloudsmith" in $crate_registries {
+            if $can_publish {
+                print "[Crate] Packaging for Cloudsmith..."
+                try {
+                    cargo package
+                    let crate_files = (glob target/package/*.crate)
+                    if ($crate_files | is-not-empty) {
+                        let crate_file = $crate_files.0
+                        print $"[Crate] Pushing ($crate_file) to Cloudsmith ($repo)..."
+                        cloudsmith push cargo $repo ($crate_file | path expand) -k $env.CLOUDSMITH_API_KEY
+                    } else {
+                        print "::warning::[Crate] No .crate file found in target/package."
+                    }
+                } catch {|err|
+                    print $"::warning::[Crate] Failed to package or push to Cloudsmith: ($err.msg)"
+                }
+            } else {
+                print "[Crate] Skipping cloudsmith publish: API Key not found or not a tag push."
+            }
+        }
     }
 }
