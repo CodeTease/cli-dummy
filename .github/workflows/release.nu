@@ -28,7 +28,7 @@ def format_template [
     mut skip_stack = []
 
     for line in (open --raw $template_path | lines) {
-        let start_match = ($line | parse -r '^\[IF\s+(?<condition>[a-zA-Z0-9._!-]+)\]\s*$')
+        let start_match = ($line | parse -r '^\s*\[IF\s+(?<condition>[a-zA-Z0-9._!-]+)\]\s*$')
         if ($start_match | is-not-empty) {
             let cond = $start_match.0.condition
             let is_cond_true = (do $eval_condition $cond)
@@ -37,7 +37,7 @@ def format_template [
             continue
         }
         
-        let end_match = ($line | parse -r '^\[/IF\]\s*$')
+        let end_match = ($line | parse -r '^\s*\[/IF\]\s*$')
         if ($end_match | is-not-empty) {
             if not ($skip_stack | is-empty) {
                 $skip_stack = ($skip_stack | drop 1)
