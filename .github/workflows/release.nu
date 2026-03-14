@@ -620,6 +620,7 @@ def run_publish [] {
     # 0.95 Generate Registry Info
     let cloudsmith_enabled = (try { $config.cloudsmith.enable } catch { false })
     let docs_path = (try { $config.cloudsmith.docs_path } catch { "REGISTRY.md" })
+    let docs_file = ($docs_path | path basename)
     let r_template = ".github/workflows/Registry.template.md"
     if $cloudsmith_enabled and $docs_path != "" and ($r_template | path exists) {
         print $"(char nl)[Registry] Generating Registry instructions..."
@@ -666,15 +667,15 @@ def run_publish [] {
             | str replace --all "{{scoop_bucket}}" $scoop_bucket
             | str replace --all "{{scoop_bucket_name}}" $scoop_bucket_name)
         
-        $r_content | save --force $"($dist)/($docs_path)"
-        print $"Generated ($dist)/($docs_path)"
+        $r_content | save --force $"($dist)/($docs_file)"
+        print $"Generated ($dist)/($docs_file)"
 
         do {
             let target_docs_path = $"($env.GITHUB_WORKSPACE)/($docs_path)"
             let target_dir = ($target_docs_path | path dirname)
             if not ($target_dir | path exists) { mkdir $target_dir }
             
-            cp -f $"($dist)/($docs_path)" $target_docs_path
+            cp -f $"($dist)/($docs_file)" $target_docs_path
             
             print "Checking for changes in registry docs..."
             cd $env.GITHUB_WORKSPACE
@@ -926,9 +927,9 @@ def run_publish [] {
             }
         }
 
-        if ($dist | path join $docs_path | path exists) {
+        if ($dist | path join $docs_file | path exists) {
             let github_repo = ($env.GITHUB_REPOSITORY? | default "OWNER/REPO")
-            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please download [($docs_path)]\(https://github.com/($github_repo)/releases/download/($tag_name)/($docs_path)\) to view the instructions.")
+            $notes_lines = ($notes_lines | append $"To install via package managers \(APT, RPM, APK, NuGet\), please download [($docs_file)]\(https://github.com/($github_repo)/releases/download/($tag_name)/($docs_file)\) to view the instructions.")
             $notes_lines = ($notes_lines | append "")
         }
 
