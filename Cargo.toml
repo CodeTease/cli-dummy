@@ -5,8 +5,9 @@ authors = ["CodeTease"]
 repository = "https://github.com/CodeTease/cli-dummy"
 homepage = "https://github.com/CodeTease/cli-dummy"
 license = "MIT"
-description = "A dummy CLI tool"
+description = "A dummy CLI tool that prints literally anything (that I can think of)."
 edition = "2024"
+keywords = ["cli", "dummy", "test"]
 
 [dependencies]
 
