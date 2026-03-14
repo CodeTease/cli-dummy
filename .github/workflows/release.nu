@@ -781,7 +781,7 @@ def run_publish [] {
                 }
 
                 # Use the versioned tag for release notes
-                let note_tag = ($variant_tags | where { $it == $clean_version or $it == $"($clean_version)-bookworm" or $it == $"($clean_version)-($tpl)" } | first)
+                let note_tag = ($variant_tags | where {|it| $it == $clean_version or $it == $"($clean_version)-bookworm" or $it == $"($clean_version)-($tpl)" } | first)
                 $docker_release_notes = ($docker_release_notes | append $"docker pull ($full_image):($note_tag)")
             }
             

@@ -61,7 +61,7 @@ path-win = "C:/bin/cli-dummy"                     # Default installation path fo
 
 [docker]
 enable = true                                     # Enable Docker image builds
-image_name = "your-name/your-repo"                # Docker image name (without tag)
+image_name = "your-image-name"                # Docker image name (without tag)
 github_org = "your-name"                          # GitHub organization for GHCR
 templates = ["alpine", "debian-slim"]             # Dockerfile templates to use
 registries = ["ghcr", "cloudsmith"]               # Registries to push to (ghcr, cloudsmith)

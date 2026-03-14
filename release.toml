@@ -48,7 +48,7 @@ path-win = "C:/bin"
 
 [docker]
 enable = true
-image_name = "codetease/cli-dummy"
+image_name = "cli-dummy"
 github_org = "codetease"
 templates = ["alpine", "debian-slim"]
 registries = ["ghcr", "cloudsmith"]
