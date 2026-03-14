@@ -770,13 +770,19 @@ def run_publish [] {
                     $image_name
                 }
                 
-                let tag_ver = if $tpl == "alpine" { $clean_version } else { $"($clean_version)-($tpl)" }
-                let tag_latest = if $tpl == "alpine" { "latest" } else { $tpl }
+                let variant_tags = match $tpl {
+                    "alpine" => ["latest", $clean_version, "alpine", $"($clean_version)-alpine"],
+                    "debian-slim" => ["latest-bookworm", $"($clean_version)-bookworm"],
+                    _ => [$tpl, $"($clean_version)-($tpl)"]
+                }
                 
-                $build_args = ($build_args | append ["-t" $"($full_image):($tag_ver)"])
-                $build_args = ($build_args | append ["-t" $"($full_image):($tag_latest)"])
+                for t in $variant_tags {
+                    $build_args = ($build_args | append ["-t" $"($full_image):($t)"])
+                }
 
-                $docker_release_notes = ($docker_release_notes | append $"docker pull ($full_image):($tag_ver)")
+                # Use the versioned tag for release notes
+                let note_tag = ($variant_tags | where { $it == $clean_version or $it == $"($clean_version)-bookworm" or $it == $"($clean_version)-($tpl)" } | first)
+                $docker_release_notes = ($docker_release_notes | append $"docker pull ($full_image):($note_tag)")
             }
             
             $docker_release_notes = ($docker_release_notes | append "```")
