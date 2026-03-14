@@ -117,6 +117,12 @@ if $use_nuget {
     print "Validated NuGet configuration."
 }
 
+# Validate Crate configuration
+let use_crate = (try { $config.crate.enable } catch { false })
+if $use_crate {
+    print "Validated Crate configuration."
+}
+
 # Validate MSI configuration
 let use_msi = (try { $config.msi.enable } catch { false })
 if $use_msi {
