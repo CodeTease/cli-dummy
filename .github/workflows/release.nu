@@ -351,6 +351,11 @@ def run_publish [] {
     let config = (open $config_file)
 
     let is_tag = ($env.REF? | default "" | str starts-with "refs/tags/")
+    let bin_version = (try { $config.metadata.version } catch { "" })
+    let tag_name = if $is_tag { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+    let is_prerelease = ($tag_name | str contains -i "beta") or ($tag_name | str contains -i "rc")
+    let clean_version = ($tag_name | str replace --regex '^v' '')
+
     
     let dist = $"($env.GITHUB_WORKSPACE)/output"
     if not ($dist | path exists) {
@@ -531,7 +536,7 @@ def run_publish [] {
         let description = (try { $config.metadata.description } catch { "" })
         let license = (try { $config.metadata.license } catch { "MIT" })
 
-        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+
 
         let url_mac_amd   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-apple-darwin.tar.gz"
         let url_mac_arm   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-aarch64-apple-darwin.tar.gz"
@@ -584,7 +589,7 @@ def run_publish [] {
         let description = (try { $config.metadata.description } catch { "" })
         let license = (try { $config.metadata.license } catch { "MIT" })
 
-        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
+
 
         let url_win_x64   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-x86_64-pc-windows-msvc.zip"
         let url_win_x86   = $"($repo)/releases/download/($tag_name)/($bin_name)-($bin_version)-i686-pc-windows-msvc.zip"
@@ -725,8 +730,7 @@ def run_publish [] {
         let bin_version = (try { $config.metadata.version } catch { "" })
         let image_name = (try { $config.docker.image_name } catch { $bin_name })
         
-        let tag_name = if ($env.REF? | is-not-empty) { ($env.REF | str replace 'refs/tags/' '') } else { $"v($bin_version)" }
-        let clean_version = ($tag_name | str replace --regex '^v' '')
+
 
         let has_ghcr = "ghcr" in $registries
         let has_cloudsmith = "cloudsmith" in $registries
@@ -811,10 +815,18 @@ def run_publish [] {
                     $image_name
                 }
                 
-                let variant_tags = match $tpl {
-                    "alpine" => ["latest", $clean_version, "alpine", $"($clean_version)-alpine"],
-                    "debian-slim" => ["latest-bookworm", $"($clean_version)-bookworm"],
-                    _ => [$tpl, $"($clean_version)-($tpl)"]
+                let variant_tags = if $is_prerelease {
+                    match $tpl {
+                        "alpine" => [$clean_version, $"($clean_version)-alpine"],
+                        "debian-slim" => [$"($clean_version)-bookworm"],
+                        _ => [$"($clean_version)-($tpl)"]
+                    }
+                } else {
+                    match $tpl {
+                        "alpine" => ["latest", $clean_version, "alpine", $"($clean_version)-alpine"],
+                        "debian-slim" => ["latest-bookworm", $"($clean_version)-bookworm"],
+                        _ => [$tpl, $"($clean_version)-($tpl)"]
+                    }
                 }
                 
                 for t in $variant_tags {
@@ -847,7 +859,7 @@ def run_publish [] {
     if $is_tag {
         print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."
         hr-line
-        let tag_name = ($env.REF | str replace 'refs/tags/' '')
+
         
         let bin = (try { $config.metadata.bin } catch { "" })
         let version = (try { $config.metadata.version } catch { "" })
@@ -963,10 +975,12 @@ def run_publish [] {
 
         # Check if release exists
         let release_exists = (try { gh release view $tag_name | complete } catch { {exit_code: 1} })
+        let prerelease_flag = if $is_prerelease { ["--prerelease"] } else { [] }
+
         if $release_exists.exit_code != 0 {
-            gh release create $tag_name --draft --title $"($tag_name)" --notes-file $notes_file
+            gh release create $tag_name --draft --title $"($tag_name)" --notes-file $notes_file ...$prerelease_flag
         } else {
-            gh release edit $tag_name --notes-file $notes_file
+            gh release edit $tag_name --notes-file $notes_file ...$prerelease_flag
         }
         
         # Upload all assets in dist (files only)
