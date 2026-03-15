@@ -9,4 +9,4 @@ About the CLI, it's a simple CLI tool that prints literally anything (that I can
 cli-dummy
 ```
 
-The main point is to test the release workflow. `crates.io` is one of them.
+The main point is to test the release workflow.

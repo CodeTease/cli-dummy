@@ -10,6 +10,10 @@ homepage = "https://github.com/CodeTease/cli-dummy"
 maintainer = "CodeTease"
 description = "A dummy CLI tool"
 
+[metadata.files]
+include = ["README.md", "LICENSE"]
+exclude = []
+
 [nfpm]
 enable = true
 
@@ -35,7 +39,7 @@ authors = "CodeTease"
 
 [crate]
 enable = true
-registries = ["crates.io", "cloudsmith"]
+registries = ["cloudsmith"]
 
 [cloudsmith.targets]
 deb = "ubuntu/noble"

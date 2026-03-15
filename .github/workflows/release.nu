@@ -227,7 +227,27 @@ def run_build [] {
     print $"(char nl)Copying release files..."
     hr-line
 
-    let assets = [LICENSE ...(glob $executable_pattern)]
+    let files_config = (try { $config.metadata.files } catch { { include: ["README.md", "LICENSE"], exclude: [] } })
+    let include_globs = (try { $files_config.include } catch { ["README.md", "LICENSE"] })
+    let exclude_globs = (try { $files_config.exclude } catch { [] })
+
+    # Start with the executable(s)
+    mut assets = (glob $executable_pattern)
+
+    # Add included files
+    for pattern in $include_globs {
+        let matches = (glob $pattern)
+        $assets = ($assets | append $matches)
+    }
+
+    $assets = ($assets | uniq)
+
+    # Remove excluded files
+    for pattern in $exclude_globs {
+        let excluded = (glob $pattern)
+        $assets = ($assets | where {|it| $it not-in $excluded })
+    }
+
     $assets | each {|it| if ($it | path exists) { cp -rv $it $dist } } | flatten
 
     # --- Create Archive ---

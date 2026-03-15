@@ -11,6 +11,10 @@ homepage = "https://github.com/your-name/your-repo" # Project's homepage or docu
 maintainer = "your-name"                           # Maintainer handle (used in NuGet)
 description = "Something about your tool"          # Short description of the project
 
+[metadata.files]
+include = ["README.md", "LICENSE"]                 # Files to include in the release archive (globs supported)
+exclude = []                                       # Files to exclude from the release archive (globs supported)
+
 # nFPM configuration for building Linux packages (.deb, .rpm, .apk)
 [nfpm]
 enable = true                                     # Enable generation of native Linux packages via nFPM
