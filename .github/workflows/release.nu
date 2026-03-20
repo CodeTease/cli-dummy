@@ -759,10 +759,11 @@ def run_publish [] {
             
             print "Checking for changes in registry docs..."
             cd $env.GITHUB_WORKSPACE
-            let actor = ($env.GITHUB_ACTOR? | default "github-actions[bot]")
+            let actor = "github-actions[bot]"
+            let email = "41898282+github-actions[bot]@users.noreply.github.com"
             try {
                 git config --local user.name $actor
-                git config --local user.email $"($actor)@users.noreply.github.com"
+                git config --local user.email $email
                 git add $docs_path
                 let status = (git status --porcelain $docs_path)
                 if ($status | is-not-empty) {
