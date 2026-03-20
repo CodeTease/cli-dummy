@@ -61,8 +61,7 @@ image_name = "cli-dummy"
 github_org = "codetease"
 templates = ["alpine", "debian-slim"]
 registries = ["ghcr", "cloudsmith"]
-# Service username, so it's quite different 
-cloudsmith_docker_username = "codetease-imos"
+cloudsmith_docker_username = "codetease-bot"
 
 [targets]
 "aarch64-apple-darwin" = true
