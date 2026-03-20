@@ -1,6 +1,6 @@
 # Package Registry Setup Guide
 
-`cli-dummy` version `0.4.5`
+`cli-dummy` version `0.4.6`
 
 This project automatically publishes packages to [Cloudsmith](https://cloudsmith.io/~codetease/tools/). 
 To easily install `cli-dummy` and receive future updates naturally through your system's package manager, run the relevant setup script for your environment.
@@ -31,8 +31,8 @@ apk add cli-dummy
 ### Arch Linux (PKGBUILD)
 You can build and install the package using the provided `PKGBUILD` artifact from GitHub Releases.
 ```bash
-curl -LO https://github.com/CodeTease/cli-dummy/releases/download/v0.4.5/cli-dummy-0.4.5-archlinux-pkgbuild.tar.gz
-tar -xzf cli-dummy-0.4.5-archlinux-pkgbuild.tar.gz
+curl -LO https://github.com/CodeTease/cli-dummy/releases/download/v0.4.6/cli-dummy-0.4.6-archlinux-pkgbuild.tar.gz
+tar -xzf cli-dummy-0.4.6-archlinux-pkgbuild.tar.gz
 makepkg -si
 ```
 
@@ -73,11 +73,6 @@ scoop bucket add scoop-bucket https://github.com/CodeTease/scoop-bucket
 scoop install scoop-bucket/cli-dummy
 ```
 
-## Rust (Cargo)
-You can install the package directly from `crates.io`:
-```bash
-cargo install cli-dummy
-```
 
 ## Rust (Cargo - Cloudsmith)
 To install from the Cloudsmith registry:
@@ -98,29 +93,29 @@ Multi-architecture Docker images are available. You can pull the images from Git
 ### Alpine (Default)
 Minimal size image based on Alpine Linux.
 ```bash
-docker pull ghcr.io/codetease/cli-dummy:0.4.5
+docker pull ghcr.io/codetease/cli-dummy:0.4.6
 # OR
-docker pull ghcr.io/codetease/cli-dummy:0.4.5-alpine
+docker pull ghcr.io/codetease/cli-dummy:0.4.6-alpine
 # OR (Cloudsmith)
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.5
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6
 # OR
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.5-alpine
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6-alpine
 ```
 
 ### Debian Slim
 Compatible image based on Debian Bookworm Slim.
 ```bash
-docker pull ghcr.io/codetease/cli-dummy:0.4.5-bookworm
+docker pull ghcr.io/codetease/cli-dummy:0.4.6-bookworm
 # OR
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.5-bookworm
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6-bookworm
 ```
 
 ### Dockerfile
 To refer image after pulling, use this in your `Dockerfile`:
 ```dockerfile
 # Alpine
-FROM ghcr.io/codetease/cli-dummy:0.4.5
+FROM ghcr.io/codetease/cli-dummy:0.4.6
 
 # Debian Slim
-FROM ghcr.io/codetease/cli-dummy:0.4.5-bookworm
+FROM ghcr.io/codetease/cli-dummy:0.4.6-bookworm
 ```
