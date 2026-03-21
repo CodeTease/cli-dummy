@@ -1,6 +1,6 @@
 # Package Registry Setup Guide
 
-`cli-dummy` version `0.4.6`
+`cli-dummy` version `0.5.0`
 
 This project automatically publishes packages to [Cloudsmith](https://cloudsmith.io/~codetease/tools/). 
 To easily install `cli-dummy` and receive future updates naturally through your system's package manager, run the relevant setup script for your environment.
@@ -10,29 +10,29 @@ To easily install `cli-dummy` and receive future updates naturally through your 
 ### Debian & Ubuntu (APT)
 To configure the APT repository and install the package:
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.deb.sh' | sudo -E bash
+curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.deb.sh' | sudo -E distro=ubuntu codename=noble bash
 sudo apt install cli-dummy
 ```
 
 ### RHEL, CentOS & Fedora (RPM)
 To configure the YUM/DNF repository and install the package:
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.rpm.sh' | sudo -E distro=el codename=9 bash
 sudo dnf install cli-dummy
 ```
 
 ### Alpine Linux (APK)
 To configure the APK repository and install the package:
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.alpine.sh' | sudo -E bash
+curl -1sLf 'https://dl.cloudsmith.io/public/codetease/tools/setup.alpine.sh' | sudo -E distro=alpine codename=any-version bash
 apk add cli-dummy
 ```
 
 ### Arch Linux (PKGBUILD)
 You can build and install the package using the provided `PKGBUILD` artifact from GitHub Releases.
 ```bash
-curl -LO https://github.com/CodeTease/cli-dummy/releases/download/v0.4.6/cli-dummy-0.4.6-archlinux-pkgbuild.tar.gz
-tar -xzf cli-dummy-0.4.6-archlinux-pkgbuild.tar.gz
+curl -LO https://github.com/CodeTease/cli-dummy/releases/download/v0.5.0/cli-dummy-0.5.0-archlinux-pkgbuild.tar.gz
+tar -xzf cli-dummy-0.5.0-archlinux-pkgbuild.tar.gz
 makepkg -si
 ```
 
@@ -93,29 +93,29 @@ Multi-architecture Docker images are available. You can pull the images from Git
 ### Alpine (Default)
 Minimal size image based on Alpine Linux.
 ```bash
-docker pull ghcr.io/codetease/cli-dummy:0.4.6
+docker pull ghcr.io/codetease/cli-dummy:0.5.0
 # OR
-docker pull ghcr.io/codetease/cli-dummy:0.4.6-alpine
+docker pull ghcr.io/codetease/cli-dummy:0.5.0-alpine
 # OR (Cloudsmith)
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.5.0
 # OR
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6-alpine
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.5.0-alpine
 ```
 
 ### Debian Slim
 Compatible image based on Debian Bookworm Slim.
 ```bash
-docker pull ghcr.io/codetease/cli-dummy:0.4.6-bookworm
+docker pull ghcr.io/codetease/cli-dummy:0.5.0-bookworm
 # OR
-docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.4.6-bookworm
+docker pull docker.cloudsmith.io/codetease/tools/cli-dummy:0.5.0-bookworm
 ```
 
 ### Dockerfile
 To refer image after pulling, use this in your `Dockerfile`:
 ```dockerfile
 # Alpine
-FROM ghcr.io/codetease/cli-dummy:0.4.6
+FROM ghcr.io/codetease/cli-dummy:0.5.0
 
 # Debian Slim
-FROM ghcr.io/codetease/cli-dummy:0.4.6-bookworm
+FROM ghcr.io/codetease/cli-dummy:0.5.0-bookworm
 ```
