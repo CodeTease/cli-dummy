@@ -1057,10 +1057,10 @@ def run_publish [] {
 
         # Check if release exists
         let release_exists = (try { gh release view $tag_name | complete } catch { {exit_code: 1} })
-        let prerelease_flag = if $is_prerelease { ["--prerelease"] } else { [] }
+        let prerelease_flag = if $is_prerelease { ["--prerelease"] } else { ["--latest"] }
 
         if $release_exists.exit_code != 0 {
-            gh release create $tag_name --draft --title $"($tag_name)" --notes-file $notes_file ...$prerelease_flag
+            gh release create $tag_name --title $"($tag_name)" --notes-file $notes_file ...$prerelease_flag
         } else {
             gh release edit $tag_name --notes-file $notes_file ...$prerelease_flag
         }
