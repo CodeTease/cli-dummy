@@ -939,7 +939,7 @@ def run_publish [] {
 
     # 1. GitHub Release
     if $is_tag {
-        print $"(char nl)[GitHub] Creating Release Draft & Uploading Assets..."
+        print $"(char nl)[GitHub] Creating Release & Uploading Assets..."
         hr-line
 
         
