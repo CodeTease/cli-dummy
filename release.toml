@@ -1,6 +1,6 @@
 [metadata]
 bin = "cli-dummy"
-version = "0.4.6"
+version = "0.5.0"
 repository = "https://github.com/CodeTease/cli-dummy"
 toolchain = "1.93.1"
 
